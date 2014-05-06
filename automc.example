@@ -1,190 +1,195 @@
-active chans set(['KEY']) 	PICK SHOT vCL and holding for 17 sec
-active chans set(['KEY']) 	PICK SHOT vL and holding for 43 sec
-active chans set(['KEY']) 	PICK SHOT vKEYS and holding for 10 sec
+active chans set(['KEY']) 	PICK SHOT vKEYS and holding for 11 sec
+active chans set(['KEY']) 	PICK SHOT vKEYS and holding for 48 sec
 active chans set(['KEY']) 	PICK SHOT vKEYS and holding for 21 sec
-active chans set(['KEY']) 	PICK SHOT vCL and holding for 49 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 12 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 44 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vFULL and holding for 13 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vCL and holding for 37 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vCL and holding for 16 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vCR and holding for 25 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vCR and holding for 35 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 19 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vL and holding for 31 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vL and holding for 19 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 31 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vR and holding for 22 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vR and holding for 18 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vR and holding for 20 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vL and holding for 20 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 13 sec
-active chans set(['EGT1', 'KEY']) 	PICK SHOT vWL and holding for 10 sec
-active chans set(['EGT1', 'KEY']) 	PICK SHOT vCR and holding for 18 sec
-active chans set(['EGT1', 'KEY']) 	PICK SHOT vC and holding for 36 sec
-active chans set(['EGT1', 'KEY']) 	PICK SHOT vCL and holding for 36 sec
-active chans set(['EGT1', 'KEY']) 	PICK SHOT vC and holding for 30 sec
-active chans set(['EGT1', 'DRUMS', 'KEY']) 	PICK SHOT vDRUMS and holding for 14 sec
-active chans set(['EGT1', 'DRUMS', 'KEY']) 	PICK SHOT vCL and holding for 33 sec
-active chans set(['EGT1', 'DRUMS', 'KEY']) 	PICK SHOT vDRUMS and holding for 30 sec
-active chans set(['EGT1', 'DRUMS', 'KEY']) 	PICK SHOT vL and holding for 13 sec
-active chans set(['EGT1', 'DRUMS', 'KEY']) 	PICK SHOT vKEYS and holding for 37 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 15 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vKEYS and holding for 25 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vKEYS and holding for 17 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vCL and holding for 18 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vKEYS and holding for 26 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vFULL and holding for 13 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 26 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vCR and holding for 15 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vCL and holding for 17 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vWL and holding for 20 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vKEYS and holding for 15 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 18 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vFULL and holding for 14 sec
-active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vCL and holding for 12 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vL and holding for 11 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 12 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 18 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCL and holding for 15 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vFULL and holding for 12 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 16 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vC and holding for 11 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vC and holding for 11 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vFULL and holding for 11 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vC and holding for 19 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 19 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 11 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vL and holding for 18 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vMIDI and holding for 14 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vC and holding for 19 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 20 sec
-active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 15 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 13 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 16 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vR and holding for 14 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vKEYS and holding for 11 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vR and holding for 10 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vFULL and holding for 18 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCL and holding for 11 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCL and holding for 14 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vBG and holding for 15 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vR and holding for 16 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 11 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 10 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 18 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vKEYS and holding for 18 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 12 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCL and holding for 10 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 19 sec
-active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 20 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 14 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vR and holding for 20 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 12 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 19 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 11 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vPL and holding for 17 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 19 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCL and holding for 14 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 16 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vR and holding for 18 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vMIDI and holding for 16 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vR and holding for 19 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vBG and holding for 16 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vPL and holding for 16 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vPL and holding for 19 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 20 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 12 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 18 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vBG and holding for 20 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 12 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCL and holding for 16 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vR and holding for 14 sec
-active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vR and holding for 15 sec
-active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vFULL and holding for 32 sec
-active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vR and holding for 31 sec
-active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vCL and holding for 33 sec
-active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vL and holding for 33 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCL and holding for 15 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vC and holding for 26 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCL and holding for 23 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 14 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCL and holding for 18 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vL and holding for 25 sec
-active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vCR and holding for 24 sec
-active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vFULL and holding for 23 sec
-active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vWL and holding for 33 sec
-active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vL and holding for 33 sec
-active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vWL and holding for 15 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vR and holding for 16 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vFULL and holding for 18 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vR and holding for 13 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vR and holding for 15 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vL and holding for 17 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vCL and holding for 16 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vBG and holding for 21 sec
-active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vBG and holding for 24 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vL and holding for 10 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vFULL and holding for 16 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vCR and holding for 12 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vC and holding for 13 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vCL and holding for 12 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vMIDI and holding for 21 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vCL and holding for 25 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vFULL and holding for 17 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vL and holding for 24 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vWL and holding for 21 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vWL and holding for 20 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vWL and holding for 25 sec
-active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vCL and holding for 24 sec
-active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vDRUMS and holding for 31 sec
-active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vKEYS and holding for 38 sec
-active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vMIDI and holding for 24 sec
-active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vCR and holding for 40 sec
-active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vKEYS and holding for 31 sec
-active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vDRUMS and holding for 11 sec
-active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vCR and holding for 31 sec
-active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vL and holding for 28 sec
-active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vMIDI and holding for 30 sec
-active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 52 sec
-active chans set(['MIDI']) 	PICK SHOT vFULL and holding for 52 sec
-active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 12 sec
-active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 52 sec
-active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 45 sec
-active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 21 sec
-active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 36 sec
-active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vMIDI and holding for 28 sec
-active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vKEYS and holding for 25 sec
-active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vFULL and holding for 36 sec
-active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vKEYS and holding for 32 sec
-active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vFULL and holding for 28 sec
-active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vMIDI and holding for 36 sec
-active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vCR and holding for 24 sec
-active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vKEYS and holding for 31 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 36 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 13 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vCL and holding for 44 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 39 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vL and holding for 11 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vFULL and holding for 17 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 21 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vFULL and holding for 15 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vL and holding for 45 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 29 sec
+active chans set(['KEY']) 	PICK SHOT vKEYS and holding for 52 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 16 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 18 sec
 active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 20 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vFULL and holding for 20 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 11 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 19 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vFULL and holding for 37 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vL and holding for 26 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 30 sec
-active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vCL and holding for 22 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vCL and holding for 30 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vL and holding for 33 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 29 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 11 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 27 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vCR and holding for 23 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 23 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 13 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 11 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 11 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vCR and holding for 40 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vR and holding for 44 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 12 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 39 sec
+active chans set(['EGT1', 'KEY']) 	PICK SHOT vC and holding for 12 sec
+active chans set(['EGT1', 'KEY']) 	PICK SHOT vKEYS and holding for 45 sec
+active chans set(['EGT1', 'KEY']) 	PICK SHOT vKEYS and holding for 39 sec
+active chans set(['EGT1', 'KEY']) 	PICK SHOT vCL and holding for 32 sec
+active chans set(['EGT1', 'DRUMS', 'KEY']) 	PICK SHOT vKEYS and holding for 22 sec
+active chans set(['EGT1', 'DRUMS', 'KEY']) 	PICK SHOT vDRUMS and holding for 32 sec
+active chans set(['EGT1', 'DRUMS', 'KEY']) 	PICK SHOT vKEYS and holding for 11 sec
+active chans set(['EGT1', 'DRUMS', 'KEY']) 	PICK SHOT vC and holding for 10 sec
+active chans set(['EGT1', 'DRUMS', 'KEY']) 	PICK SHOT vCR and holding for 17 sec
+active chans set(['EGT1', 'DRUMS', 'KEY']) 	PICK SHOT vKEYS and holding for 37 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vWL and holding for 23 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vFULL and holding for 24 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vWL and holding for 20 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vWL and holding for 19 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vC and holding for 14 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vC and holding for 10 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 18 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 21 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 24 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vWL and holding for 23 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 15 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vCL and holding for 10 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vCL and holding for 16 sec
+active chans set(['EGT1', 'WLVOX2', 'DRUMS', 'KEY', 'WLVOX1']) 	PICK SHOT vFULL and holding for 21 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 20 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 12 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 20 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 14 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 17 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 19 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCL and holding for 20 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vKEYS and holding for 17 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vMIDI and holding for 18 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCL and holding for 20 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vL and holding for 11 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 14 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vL and holding for 14 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 12 sec
+active chans set(['KEY', 'MIDI', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 19 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vKEYS and holding for 20 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 20 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vKEYS and holding for 10 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vR and holding for 14 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vBG and holding for 15 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vC and holding for 20 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 16 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 11 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vFULL and holding for 20 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vMIDI and holding for 15 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vBG and holding for 13 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 16 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 15 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 11 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 10 sec
+active chans set(['KEY', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 19 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 11 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vKEYS and holding for 19 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 18 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vC and holding for 19 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vBG and holding for 13 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vMIDI and holding for 17 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vC and holding for 14 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 17 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vMIDI and holding for 19 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 13 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 12 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 19 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 15 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 14 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vKEYS and holding for 18 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vR and holding for 18 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vFULL and holding for 11 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 12 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 13 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 19 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 10 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vPL and holding for 10 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vMIDI and holding for 20 sec
+active chans set(['KEY', 'PLVOX', 'MIDI', 'BGV3', 'BGV2', 'BGV1', 'EGT1', 'WLVOX2', 'DRUMS', 'WLVOX1']) 	PICK SHOT vC and holding for 13 sec
+active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vPL and holding for 33 sec
+active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vFULL and holding for 23 sec
+active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vCR and holding for 15 sec
+active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vWL and holding for 20 sec
+active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vL and holding for 13 sec
+active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vDRUMS and holding for 26 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vBG and holding for 23 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 18 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vDRUMS and holding for 18 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vBG and holding for 13 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vBG and holding for 20 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vCR and holding for 12 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vL and holding for 10 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'WLVOX1']) 	PICK SHOT vWL and holding for 20 sec
+active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vCL and holding for 32 sec
+active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vPL and holding for 31 sec
+active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vL and holding for 25 sec
+active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vPL and holding for 24 sec
+active chans set(['EGT1', 'BASS', 'DRUMS', 'PLVOX']) 	PICK SHOT vPL and holding for 23 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vWL and holding for 19 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vL and holding for 26 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vWL and holding for 25 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vL and holding for 20 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vCR and holding for 14 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vDRUMS and holding for 13 sec
+active chans set(['EGT1', 'BGV1', 'BASS', 'DRUMS', 'BGV2']) 	PICK SHOT vC and holding for 26 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vFULL and holding for 13 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vMIDI and holding for 19 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vMIDI and holding for 26 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vL and holding for 13 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vMIDI and holding for 17 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vCR and holding for 20 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vKEYS and holding for 15 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vCL and holding for 12 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vCR and holding for 16 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vCL and holding for 20 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vWL and holding for 23 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vDRUMS and holding for 11 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vCL and holding for 12 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vFULL and holding for 22 sec
+active chans set(['WLVOX1', 'MIDI', 'DRUMS', 'KEY', 'BASS']) 	PICK SHOT vDRUMS and holding for 16 sec
+active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vDRUMS and holding for 29 sec
+active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vFULL and holding for 21 sec
+active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vFULL and holding for 37 sec
+active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vCL and holding for 37 sec
+active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vMIDI and holding for 20 sec
+active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vFULL and holding for 39 sec
+active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vL and holding for 11 sec
+active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vMIDI and holding for 25 sec
+active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vL and holding for 11 sec
+active chans set(['DRUMS', 'KEY', 'MIDI']) 	PICK SHOT vCR and holding for 11 sec
+active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 22 sec
+active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 18 sec
+active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 37 sec
+active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 10 sec
+active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 40 sec
+active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 31 sec
+active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 45 sec
+active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 15 sec
+active chans set(['MIDI']) 	PICK SHOT vMIDI and holding for 36 sec
+active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vCL and holding for 39 sec
+active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vKEYS and holding for 22 sec
+active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vKEYS and holding for 24 sec
+active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vKEYS and holding for 14 sec
+active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vCR and holding for 33 sec
+active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vKEYS and holding for 31 sec
+active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vFULL and holding for 11 sec
+active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vFULL and holding for 13 sec
+active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vMIDI and holding for 24 sec
+active chans set(['KEYVOX', 'KEY', 'MIDI']) 	PICK SHOT vMIDI and holding for 38 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 25 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 39 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 32 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 23 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vL and holding for 43 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 35 sec
 active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vCL and holding for 25 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 43 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 32 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 26 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vR and holding for 23 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 19 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 40 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 41 sec
-active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 33 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vCL and holding for 24 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 38 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 10 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vFULL and holding for 35 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 45 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vCL and holding for 39 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 29 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 23 sec
+active chans set(['KEYVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 34 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 21 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vR and holding for 44 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 42 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 23 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vCL and holding for 33 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vL and holding for 30 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vKEYS and holding for 20 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 25 sec
+active chans set(['PLVOX', 'KEY']) 	PICK SHOT vPL and holding for 25 sec
