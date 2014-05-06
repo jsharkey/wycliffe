@@ -54,7 +54,7 @@ vFULL = Shot(12, "vFULL")
 
 aPLVOX = Channel("aPLVOX", 1.2, "PLVOX")
 aWLVOX = Channel("aWLVOX", 0.8, "WLVOX1,WLVOX2")
-aBGV = Channel("aBGV", 0.8, "BGVOX1,BGVOX2,BGVOX3")
+aBGV = Channel("aBGV", 0.8, "BGV1,BGV2,BGV3")
 aKEYVOX = Channel("aKEYVOX", 0.6, "KEYVOX")
 aMIDIVOX = Channel("aMIDIVOX", 0.6, "MIDIVOX")
 aWLINST = Channel("aWLINST", 0.5, "EGT1,AGT1")
