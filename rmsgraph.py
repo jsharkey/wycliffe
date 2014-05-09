@@ -316,7 +316,8 @@ class RmsThread(threading.Thread):
 						ui.level.complete = 'inactive'
 						if title in active_chans:
 							active_chans.remove(title)
-						
+							
+			camera_score()
 
 
 cur = None
@@ -340,9 +341,16 @@ def camera_move(cam, preset):
 	ser.close()
 
 
-def camera_loop():
-	global cur_cam
+stale = 0
+scores = {}
 
+def camera_score():
+	global scores, stale
+
+	stale += 1
+	if stale < 1: return
+	else: stale = 0
+	
 	# okay, time to transition! what's active?
 	msg = "active chans %s\n" % (active_chans)
 
@@ -368,18 +376,28 @@ def camera_loop():
 	for k, v in res.iteritems():
 		total += v
 
-	shots = sorted(res.iteritems(), key=operator.itemgetter(1), reverse=True)
+	res = sorted(res.iteritems(), key=operator.itemgetter(1), reverse=True)
 	summary = []
-	for k, v in shots:
+	for k, v in res:
 		v /= total
 		summary.append("%s %f" % (k.__repr__().rjust(20), v))
 
 	while len(summary) < 8: summary.append("")
 	msg += "\n".join(summary[:8])
+
+	ui_summary.set_text(msg)
+	scores = res
+
+	
+def camera_loop():
+	global cur_cam, scores
 		
 	next = None
-	pick = random.random() * total
-	for k, v in res.iteritems():
+	pick = random.random()
+
+	ui_cam.set_text("%d" % (len(scores)))
+
+	for k, v in scores:
 		pick -= v
 		if pick <= 0:
 			next = k
@@ -399,10 +417,7 @@ def camera_loop():
 	step = random.randint(10,top)
 	step = 2
 
-	msg += "\nholding %d sec" % (step)
-
 	ui_cam.set_text("%d-%s" % (cur_cam, cur))
-	ui_summary.set_text(msg)
 	
 	camera_move(cur_cam + 1, cur.preset)
 
