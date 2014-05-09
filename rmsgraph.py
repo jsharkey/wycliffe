@@ -19,6 +19,70 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import random, collections, operator
+import serial
+
+class Channel():
+	def __init__(self, title, w, matches):
+		self.title = title
+		self.w = w
+		self.matches = set(matches.split(","))
+		self.active = False
+
+	def __repr__(self):
+		return self.title
+
+class Shot():
+	def __init__(self, preset, title):
+		self.preset = preset
+		self.title = title
+
+	def __repr__(self):
+		return self.title
+
+
+vKEYS = Shot(1, "vKEYS")
+vDRUMS = Shot(2, "vDRUMS")
+vWL = Shot(3, "vWL")
+vPL = Shot(4, "vPL")
+vMIDI = Shot(5, "vMIDI")
+vBG = Shot(6, "vBG")
+vC = Shot(7, "vC")
+vCL = Shot(8, "vCL")
+vCR = Shot(9, "vCR")
+vL = Shot(10, "vL")
+vR = Shot(11, "vR")
+vFULL = Shot(12, "vFULL")
+
+aPLVOX = Channel("aPLVOX", 1.2, "PLVOX")
+aWLVOX = Channel("aWLVOX", 0.8, "WLVOX1,WLVOX2")
+aBGV = Channel("aBGV", 0.8, "BGV1,BGV2,BGV3")
+aKEYVOX = Channel("aKEYVOX", 0.6, "KEYVOX")
+aMIDIVOX = Channel("aMIDIVOX", 0.6, "MIDIVOX")
+aWLINST = Channel("aWLINST", 0.5, "EGT1,AGT1")
+aKEY = Channel("aKEY", 0.5, "KEYL,KEYR,KEY")
+aMIDI = Channel("aMIDI", 0.5, "MIDIL,MIDIR,MIDI")
+aDRUMS = Channel("aDRUMS", 0.5, "DRUMS,KICK,SNARE,OHL,OHR")
+aBASS = Channel("aBASS", 0.5, "BASS")
+
+AUDIO = [aPLVOX,aWLVOX,aBGV,aKEYVOX,aMIDIVOX,aWLINST,aKEY,aMIDI,aDRUMS,aBASS]
+
+CONFIG = {
+	aPLVOX: [vPL,vR,vCR],
+	aWLVOX: [vWL,vC,vCR,vCL,vFULL],
+	aBGV: [vBG,vR,vCR,vFULL],
+	aKEYVOX: [vKEYS,vL,vCL,vFULL],
+	aMIDIVOX: [vMIDI,vCR,vFULL],
+
+	aWLINST: [vWL,vC,vCR,vCL,vFULL],
+	aKEY: [vKEYS,vL,vCL,vFULL],
+	aMIDI: [vMIDI,vCR,vFULL],
+	aDRUMS: [vDRUMS,vCL,vFULL],
+	aBASS: [vL,vCL,vFULL],
+}
+
+
+
 
 # apt-get install python-dev python-pip
 # pip install urwid
@@ -36,12 +100,17 @@ palette = [
     ('banner', 'black', 'light gray'),
     ('streak', 'black', 'dark red'),
     ('level', 'black', 'dark red'),
+	('inact', 'black', 'dark blue'),
     ]
 
 
 labels = []
 levels = []
 rows = []
+
+camsum = urwid.Text(('label', u"CAMSUM"), align='left')
+rows.append(camsum)
+
 
 for i in range(1,128):
 	label = urwid.Text(('label', u"CH%d" % (i)), align='right')
@@ -63,9 +132,9 @@ CTL_PORT = 8800
 INFO_PORT = 4440
 RMS_PORT = 8751
 
-#LOCAL_IDENT = "001c25be39850000"
-LOCAL_IDENT = "CAFECAFECAFE0000"
-LOCAL_IP = "10.35.0.21"
+LOCAL_IDENT = "001c25bf39850000"
+#LOCAL_IDENT = "CAFECAFECAFE0000"
+LOCAL_IP = "10.35.20.20"
 
 class InfoPacket():
 	# t3=0000 send
@@ -143,9 +212,9 @@ rsock.bind(('', RMS_PORT))
 p = InfoPacket.outgoing(0x1200, 0xeeee, 0x3010, 0x0000)
 p.append_hex("0000")
 p.append_hex(LOCAL_IDENT)
-p.append_hex("0004 0018 0001 0020 000a")
-p.append_raw("DN965x-0412e2\0test-PC\0")
-p.append_hex("0001 0026 0001")
+p.append_hex("0004 0018 0001 0022 000a")
+p.append_raw("DN965x-0412e2\0admii-PC\0")
+p.append_hex("00 0001 0026 0001")
 p.append_raw(struct.pack("!H", RMS_PORT))
 p.append_hex("0001 0000")
 p.append_raw(inet_pton(AF_INET, LOCAL_IP))
@@ -155,6 +224,19 @@ p.append_hex("0000")
 csock.sendto(p.pack(), (DANTE, CTL_PORT))
 
 
+import collections
+
+recent = collections.defaultdict(lambda: float(255))
+
+ACTIVE_TH = {
+	'OHL': 0.6,
+	'AGT1': 0.5,
+	'WLVOX1': 0.8,
+	'KEYVOX': 0.7,
+	'KEYL': 0.5,
+}
+
+ACTIVE = {}
 
 class RmsThread(threading.Thread):
 	def __init__(self):
@@ -171,15 +253,125 @@ class RmsThread(threading.Thread):
 				ch = i+1
 				if ch in channels:
 					#print ch, channels[ch], rms[i]
-					levels[i].set_completion(255-rms[i])
+					val = 255-rms[i]
+					if val > recent[i]:
+						recent[i] = (recent[i] * 0.6) + (val * 0.4)
+					else:
+						recent[i] = (recent[i] * 0.99) + (val * 0.01)
+					#recent[i] = val
+					levels[i].set_completion(recent[i])
+					name = channels[i+1]
+
+					act = False
+					if name in ACTIVE_TH:
+						act = (float(recent[i]) / 255 > ACTIVE_TH[name])
+						#print
+						
+					if act:
+						ACTIVE[name] = True
+						labels[i].set_text("====> " + name)
+					else:
+						ACTIVE[name] = False
+						labels[i].set_text(name)
+						
 
 			#data = data[24+3:]
 			#for i in range(0,len(levels)):
 			#	val = 255-ord(data[i])
 			#	levels[i].set_completion(val)
 
+ser = serial.Serial('/dev/ttyUSB0')
+ser.write("\r\n")
+print ser.readline()
+
+
+def docam():
+	msg = ""
+
+	# okay, time to transition! what's active?
+	#dur, chans = SET[0]
+	#chans = set(chans.split(","))
+	chans = set([ k for k,v in ACTIVE.iteritems() if v ])
+	msg += "active chans " + chans.__repr__()
+
+	# map active channels onto audio
+	for a in AUDIO:
+		a.active = len(a.matches & chans) > 0
+
+	# score up active audio
+	res = collections.defaultdict(int)
+	for a in AUDIO:
+		if a.active:
+			shots = CONFIG[a]
+			for s in range(len(shots)):
+				if s == 0:
+					sweight = 2
+				else:
+					sweight = 1-(float(s)/len(shots))
+				cweight = a.w * sweight
+				s = shots[s]
+				res[s] += cweight
+
+	#print
+	total = 0
+	for k, v in res.iteritems():
+		total += v
+
+	shots = sorted(res.iteritems(), key=operator.itemgetter(1), reverse=True)
+	for k, v in shots:
+		v /= total
+		#print "\t%s\t%f" % (k, v)
+
+	pick = random.random() * total
+	for k, v in res.iteritems():
+		pick -= v
+		if pick <= 0:
+			msg += " --> PICK SHOT " + k.__repr__()
+			cur = k
+			break
+
+	# camera lingers 10-30 sec
+	# 60 sec => 20 sec
+	top = min(float(len(chans))/6,1)
+	top = int(60-(40*top))
+	step = random.randint(10,top)
+	step = 10
+	msg += " --> holding " + step.__repr__() + "sec"
+
+	
+
+	camsum.set_text(msg)
+
+	ser.write("InCtlA 1\r\n")
+	ser.flush()
+	print ser.readline()
+
+	ser.write("Preset %d\r\n" % (cur.preset))
+	ser.flush()
+	print ser.readline()
+
+
+
+	time.sleep(step)
+
+
+class CamThread(threading.Thread):
+	def __init__(self):
+		threading.Thread.__init__(self)
+		self.daemon = True
+		
+	def run(self):
+		while True:
+			docam()
+
+
+
 t = RmsThread()
 t.start()
+
+t2 = CamThread()
+t2.start()
+
 
 
 def refresh(loop=None, user_data=None):
@@ -187,7 +379,9 @@ def refresh(loop=None, user_data=None):
 
 loop = urwid.MainLoop(page, palette, unhandled_input=exit_on_q)
 refresh(loop, None)
-
 loop.run()
+
+#sys.stdin.readline()
+
 exit(0)
 
