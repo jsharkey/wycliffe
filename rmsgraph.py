@@ -20,7 +20,9 @@
 #
 
 import random, collections, operator
+
 import serial
+
 
 class Channel():
 	def __init__(self, title, w, matches):
@@ -40,7 +42,7 @@ class Shot():
 	def __repr__(self):
 		return self.title
 
-
+"""
 vKEYS = Shot(1, "vKEYS")
 vDRUMS = Shot(2, "vDRUMS")
 vWL = Shot(3, "vWL")
@@ -53,6 +55,19 @@ vCR = Shot(9, "vCR")
 vL = Shot(10, "vL")
 vR = Shot(11, "vR")
 vFULL = Shot(12, "vFULL")
+"""
+
+vKEYS = Shot(1, "vKEYS")
+vDRUMS = Shot(2, "vDRUMS")
+vWL = Shot(3, "vWL")
+vMIDI = Shot(4, "vMIDI")
+vBG = Shot(5, "vBG")
+vPL = Shot(6, "vPL")
+vCR = Shot(7, "vCR")
+vCL = Shot(8, "vCL")
+vFULL = Shot(9, "vFULL")
+
+vR = vL = vC = None
 
 aPLVOX = Channel("aPLVOX", 1.2, "PLVOX")
 aWLVOX = Channel("aWLVOX", 0.8, "WLVOX1,WLVOX2")
@@ -81,6 +96,9 @@ CONFIG = {
 	aBASS: [vL,vCL,vFULL],
 }
 
+for c, v in CONFIG.iteritems():
+	while None in v:
+		v.remove(None)
 
 
 
@@ -99,26 +117,35 @@ def exit_on_q(key):
 palette = [
     ('banner', 'black', 'light gray'),
     ('streak', 'black', 'dark red'),
-    ('level', 'black', 'dark red'),
-	('inact', 'black', 'dark blue'),
+    ('inactive', 'black', 'dark blue'),
+	('active', 'black', 'dark red'),
     ]
 
 
-labels = []
-levels = []
 rows = []
+channel_ui = []
 
-camsum = urwid.Text(('label', u"CAMSUM"), align='left')
-rows.append(camsum)
+ui_summary = urwid.Text(('label', u"[camera summary]"), align='left')
+ui_cam = urwid.BigText('[]', urwid.font.HalfBlock5x4Font())
 
+#rows.append(ui_summary)
+#rows.append()
+
+wrapped_ui_cam = urwid.Padding(ui_cam, width='clip')
+rows.append(urwid.Columns([ui_summary, ('weight', 0.2, wrapped_ui_cam)], dividechars=1))
+
+
+class VisualChannel():
+	def __init__(self, i):
+		self.label = urwid.Text(('label', u"CH%d" % (i)), align='right')
+		self.level = urwid.ProgressBar('', 'inactive', 0, 255)
+		#self.level_color = urwid.AttrMap(self.level, 'active')
+		self.row = urwid.Columns([('weight', 0.2, self.label), self.level], dividechars=1)
 
 for i in range(1,128):
-	label = urwid.Text(('label', u"CH%d" % (i)), align='right')
-	level = urwid.ProgressBar('', 'level', 0, 255)
-	row = urwid.Columns([('weight', 0.2, label), level], dividechars=1)
-	labels.append(label)
-	levels.append(level)
-	rows.append(row)
+	ch = VisualChannel(i)
+	channel_ui.append(ch)
+	rows.append(ch.row)
 
 page = urwid.ListBox(urwid.SimpleFocusListWalker(rows))
 
@@ -191,14 +218,14 @@ for n in range(ret):
 	label_ptr -= 10
 	label = p.data[label_ptr:p.data.index("\0", label_ptr)]
 	channels[target] = label
-	labels[target-1].set_text(label)
+	channel_ui[target-1].label.set_text(label)
 	#print target, label
 
 
 
 
 # parse rms
-#data = "ffff009b3ca00000001dc10412e20000417564696e617465024040bfc9c4b8bcbcb8a9bfc9c4b8bcbcb8a9a7a88bac88afb1afa7a88bac88afb1afb0cccbcdb29ca6c0b0cccbcdb29ca6c0c4b1cccafefee3e2c4b1cccafefee3e2fefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe".decode("hex")
+rms_data = "ffff009b3ca00000001dc10412e20000417564696e617465024040bfc9c4b8bcbcb8a9bfc9c4b8bcbcb8a9a7a88bac88afb1afa7a88bac88afb1afb0cccbcdb29ca6c0b0cccbcdb29ca6c0c4b1cccafefee3e2c4b1cccafefee3e2fefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe".decode("hex")
 
 
 csock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
@@ -228,15 +255,25 @@ import collections
 
 recent = collections.defaultdict(lambda: float(255))
 
-ACTIVE_TH = {
-	'OHL': 0.6,
+ACTIVE_THRESH = {
+	'KICK': 0.6,
+	'OHR': 0.6, 'OHL': 0.6,
+	'TOM1': 0.6, 'TOM2': 0.6,
+	'SNARETOP': 0.6, 'SNAREBOT': 0.6,
+
 	'AGT1': 0.5,
+	'BASS': 0.6,
+	'KEYL': 0.5, 'KEYR': 0.5,
+	'MIDIL': 0.5, 'MIDIR': 0.5,
+
+	'PLVOX': 0.8,
 	'WLVOX1': 0.8,
+	'WLVOX2': 0.8,
 	'KEYVOX': 0.7,
-	'KEYL': 0.5,
+	'MIDIVOX': 0.7,
 }
 
-ACTIVE = {}
+active_chans = set()
 
 class RmsThread(threading.Thread):
 	def __init__(self):
@@ -245,8 +282,11 @@ class RmsThread(threading.Thread):
 		
 	def run(self):
 		while True:
-			data, addr = rsock.recvfrom(1024)
-			p = InfoPacket.incoming(data)
+			#data, addr = rsock.recvfrom(1024)
+			#p = InfoPacket.incoming(data)
+			
+			p = InfoPacket.incoming(rms_data)
+			time.sleep(1)
 			
 			rms = struct.unpack("!128B", p.data[14+3:])
 			for i in range(len(rms)):
@@ -255,48 +295,60 @@ class RmsThread(threading.Thread):
 					#print ch, channels[ch], rms[i]
 					val = 255-rms[i]
 					if val > recent[i]:
-						recent[i] = (recent[i] * 0.6) + (val * 0.4)
+						recent[i] = (recent[i] * 0.8) + (val * 0.2)
 					else:
 						recent[i] = (recent[i] * 0.99) + (val * 0.01)
-					#recent[i] = val
-					levels[i].set_completion(recent[i])
-					name = channels[i+1]
 
-					act = False
-					if name in ACTIVE_TH:
-						act = (float(recent[i]) / 255 > ACTIVE_TH[name])
-						#print
+					ui = channel_ui[i]
+
+					recent[i] = random.randint(0,254)
+					ui.level.set_completion(recent[i])
+					title = channels[i+1]
+
+					active = False
+					if title in ACTIVE_THRESH:
+						active = (float(recent[i]) / 255 > ACTIVE_THRESH[title])
 						
-					if act:
-						ACTIVE[name] = True
-						labels[i].set_text("====> " + name)
+					if active:
+						ui.level.complete = 'active'
+						active_chans.add(title)
 					else:
-						ACTIVE[name] = False
-						labels[i].set_text(name)
+						ui.level.complete = 'inactive'
+						if title in active_chans:
+							active_chans.remove(title)
 						
 
-			#data = data[24+3:]
-			#for i in range(0,len(levels)):
-			#	val = 255-ord(data[i])
-			#	levels[i].set_completion(val)
 
-ser = serial.Serial('/dev/ttyUSB0')
-ser.write("\r\n")
-print ser.readline()
+cur = None
+cur_cam = 1
+
+def camera_move(cam, preset):
+	pass
+
+	ser = serial.Serial('/dev/ttyUSB0')
+	ser.write("\r\n")
+	ser.readline()
+	
+	ser.write("InCtlA %d\r\n" % (cam))
+	ser.flush()
+	ser.readline()
+
+	ser.write("Preset %d\r\n" % (preset))
+	ser.flush()
+	ser.readline()
+	
+	ser.close()
 
 
-def docam():
-	msg = ""
+def camera_loop():
+	global cur_cam
 
 	# okay, time to transition! what's active?
-	#dur, chans = SET[0]
-	#chans = set(chans.split(","))
-	chans = set([ k for k,v in ACTIVE.iteritems() if v ])
-	msg += "active chans " + chans.__repr__()
+	msg = "active chans %s\n" % (active_chans)
 
 	# map active channels onto audio
 	for a in AUDIO:
-		a.active = len(a.matches & chans) > 0
+		a.active = len(a.matches & active_chans) > 0
 
 	# score up active audio
 	res = collections.defaultdict(int)
@@ -312,45 +364,45 @@ def docam():
 				s = shots[s]
 				res[s] += cweight
 
-	#print
 	total = 0
 	for k, v in res.iteritems():
 		total += v
 
 	shots = sorted(res.iteritems(), key=operator.itemgetter(1), reverse=True)
+	summary = []
 	for k, v in shots:
 		v /= total
-		#print "\t%s\t%f" % (k, v)
+		summary.append("%s %f" % (k.__repr__().rjust(20), v))
 
+	while len(summary) < 8: summary.append("")
+	msg += "\n".join(summary[:8])
+		
+	next = None
 	pick = random.random() * total
 	for k, v in res.iteritems():
 		pick -= v
 		if pick <= 0:
-			msg += " --> PICK SHOT " + k.__repr__()
-			cur = k
+			next = k
 			break
+
+	if next is None:
+		cur = vFULL
+	else:
+		cur = next
+
+	cur_cam = (cur_cam + 1) % 2
 
 	# camera lingers 10-30 sec
 	# 60 sec => 20 sec
-	top = min(float(len(chans))/6,1)
+	top = min(float(len(active_chans))/6,1)
 	top = int(60-(40*top))
 	step = random.randint(10,top)
-	step = 10
-	msg += " --> holding " + step.__repr__() + "sec"
+	step = 2
 
-	
+	msg += "\nholding %d sec" % (step)
 
-	camsum.set_text(msg)
-
-	ser.write("InCtlA 1\r\n")
-	ser.flush()
-	print ser.readline()
-
-	ser.write("Preset %d\r\n" % (cur.preset))
-	ser.flush()
-	print ser.readline()
-
-
+	ui_cam.set_text(cur.__repr__())
+	ui_summary.set_text(msg)
 
 	time.sleep(step)
 
@@ -361,17 +413,19 @@ class CamThread(threading.Thread):
 		self.daemon = True
 		
 	def run(self):
-		while True:
-			docam()
+		try:
+			while True:
+				camera_loop()
+		except:
+			print >> sys.stderr, sys.exc_info()
 
 
 
-t = RmsThread()
-t.start()
+rms = RmsThread()
+rms.start()
 
-t2 = CamThread()
-t2.start()
-
+cam = CamThread()
+cam.start()
 
 
 def refresh(loop=None, user_data=None):
@@ -380,8 +434,6 @@ def refresh(loop=None, user_data=None):
 loop = urwid.MainLoop(page, palette, unhandled_input=exit_on_q)
 refresh(loop, None)
 loop.run()
-
-#sys.stdin.readline()
 
 exit(0)
 
