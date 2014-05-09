@@ -132,7 +132,7 @@ ui_cam = urwid.BigText('[]', urwid.font.HalfBlock5x4Font())
 #rows.append()
 
 wrapped_ui_cam = urwid.Padding(ui_cam, width='clip')
-rows.append(urwid.Columns([ui_summary, ('weight', 0.2, wrapped_ui_cam)], dividechars=1))
+rows.append(urwid.Columns([ui_summary, ('weight', 0.3, wrapped_ui_cam)], dividechars=1))
 
 
 class VisualChannel():
@@ -323,7 +323,7 @@ cur = None
 cur_cam = 1
 
 def camera_move(cam, preset):
-	pass
+	return
 
 	ser = serial.Serial('/dev/ttyUSB0')
 	ser.write("\r\n")
@@ -401,8 +401,10 @@ def camera_loop():
 
 	msg += "\nholding %d sec" % (step)
 
-	ui_cam.set_text(cur.__repr__())
+	ui_cam.set_text("%d-%s" % (cur_cam, cur))
 	ui_summary.set_text(msg)
+	
+	camera_move(cur_cam + 1, cur.preset)
 
 	time.sleep(step)
 
