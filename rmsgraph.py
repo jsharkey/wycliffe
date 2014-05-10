@@ -63,13 +63,15 @@ vWL = Shot(3, "vWL")
 vMIDI = Shot(4, "vMIDI")
 vBG = Shot(5, "vBG")
 vPL = Shot(6, "vPL")
-vCR = Shot(7, "vCR")
-vCL = Shot(8, "vCL")
+vR = Shot(7, "vR")
+vL = Shot(8, "vL")
 vFULL = Shot(9, "vFULL")
+vC = Shot(10, "vC")
+vCR = Shot(11, "vCR")
+vCL = Shot(12, "vCL")
 
-vR = vL = vC = None
 
-aPLVOX = Channel("aPLVOX", 1.2, "PLVOX")
+aPLVOX = Channel("aPLVOX", 1.2, "PLVOX,PLVOC")
 aWLVOX = Channel("aWLVOX", 0.8, "WLVOX1,WLVOX2")
 aBGV = Channel("aBGV", 0.8, "BGV1,BGV2,BGV3")
 aKEYVOX = Channel("aKEYVOX", 0.6, "KEYVOX")
@@ -253,27 +255,34 @@ csock.sendto(p.pack(), (DANTE, CTL_PORT))
 
 import collections
 
-recent = collections.defaultdict(lambda: float(255))
+recent = collections.defaultdict(lambda: float(128))
 
 ACTIVE_THRESH = {
 	'KICK': 0.6,
 	'OHR': 0.6, 'OHL': 0.6,
 	'TOM1': 0.6, 'TOM2': 0.6,
-	'SNARETOP': 0.6, 'SNAREBOT': 0.6,
+	'SNARETOP': 0.7, 'SNAREBOT': 0.7,
 
-	'AGT1': 0.5,
+	'AGT1': 0.5, 'AGT2': 0.5,
+	'EGT1': 0.5,
 	'BASS': 0.6,
 	'KEYL': 0.5, 'KEYR': 0.5,
 	'MIDIL': 0.5, 'MIDIR': 0.5,
 
-	'PLVOX': 0.8,
-	'WLVOX1': 0.8,
-	'WLVOX2': 0.8,
+	'BGV1': 0.65,
+	'BGV2': 0.65,
+	'BGV3': 0.65,
+	
+	'PLVOC': 0.8,
+	'WLVOX1': 0.7,
+	'WLVOX2': 0.7,
 	'KEYVOX': 0.7,
 	'MIDIVOX': 0.7,
 }
 
 active_chans = set()
+
+import binascii
 
 class RmsThread(threading.Thread):
 	def __init__(self):
@@ -282,13 +291,19 @@ class RmsThread(threading.Thread):
 		
 	def run(self):
 		while True:
-			#data, addr = rsock.recvfrom(1024)
-			#p = InfoPacket.incoming(data)
+			data, addr = rsock.recvfrom(1024)
+			p = InfoPacket.incoming(data)
 			
-			p = InfoPacket.incoming(rms_data)
-			time.sleep(1)
+			#p = InfoPacket.incoming(rms_data)
+			#time.sleep(1)
+
+			with open("dump.raw", "a") as f:
+				f.write("==")
+				f.write(p.data)
+				f.write("==\n")
 			
 			rms = struct.unpack("!128B", p.data[14+3:])
+
 			for i in range(len(rms)):
 				ch = i+1
 				if ch in channels:
@@ -301,7 +316,7 @@ class RmsThread(threading.Thread):
 
 					ui = channel_ui[i]
 
-					recent[i] = random.randint(0,254)
+					#recent[i] = random.randint(0,254)
 					ui.level.set_completion(recent[i])
 					title = channels[i+1]
 
@@ -376,11 +391,11 @@ def camera_score():
 	for k, v in res.iteritems():
 		total += v
 
-	res = sorted(res.iteritems(), key=operator.itemgetter(1), reverse=True)
+	res2 = sorted(res.iteritems(), key=operator.itemgetter(1), reverse=True)
 	summary = []
-	for k, v in res:
-		v /= total
-		summary.append("%s %f" % (k.__repr__().rjust(20), v))
+	for k, v in res2:
+		res[k] /= total
+		summary.append("%s %f" % (k.__repr__().rjust(20), res[k]))
 
 	while len(summary) < 8: summary.append("")
 	msg += "\n".join(summary[:8])
@@ -388,27 +403,31 @@ def camera_score():
 	ui_summary.set_text(msg)
 	scores = res
 
-	
+
+cur = None
+
 def camera_loop():
-	global cur_cam, scores
+	global cur_cam, cur, scores
 		
 	next = None
 	pick = random.random()
 
-	ui_cam.set_text("%d" % (len(scores)))
+	#ui_cam.set_text("%d" % (len(scores)))
 
-	for k, v in scores:
+	for k, v in scores.iteritems():
 		pick -= v
 		if pick <= 0:
 			next = k
 			break
 
 	if next is None:
-		cur = vFULL
-	else:
-		cur = next
+		next = vFULL
 
-	cur_cam = (cur_cam + 1) % 2
+	if next != cur:
+		cur = next
+		cur_cam = (cur_cam + 1) % 2
+		ui_cam.set_text("%d-%s" % (cur_cam, cur))
+		camera_move(cur_cam + 1, cur.preset)
 
 	# camera lingers 10-30 sec
 	# 60 sec => 20 sec
@@ -416,10 +435,6 @@ def camera_loop():
 	top = int(60-(40*top))
 	step = random.randint(10,top)
 	step = 2
-
-	ui_cam.set_text("%d-%s" % (cur_cam, cur))
-	
-	camera_move(cur_cam + 1, cur.preset)
 
 	time.sleep(step)
 
