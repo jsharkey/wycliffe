@@ -324,6 +324,7 @@ class RmsThread(threading.Thread):
 					if title in ACTIVE_THRESH:
 						active = (float(recent[i]) / 255 > ACTIVE_THRESH[title])
 						
+					active = True
 					if active:
 						ui.level.complete = 'active'
 						active_chans.add(title)
@@ -338,8 +339,10 @@ class RmsThread(threading.Thread):
 cur = None
 cur_cam = 1
 
+import urllib2
+
 def camera_move(cam, preset):
-	return
+	#return
 
 	ser = serial.Serial('/dev/ttyUSB0')
 	ser.write("\r\n")
@@ -354,6 +357,10 @@ def camera_move(cam, preset):
 	ser.readline()
 	
 	ser.close()
+	
+	# wait 5 seconds to settle, then ask atem to switch
+	time.sleep(6)
+	urllib2.urlopen('http://localhost:9090/')
 
 
 stale = 0
@@ -423,7 +430,7 @@ def camera_loop():
 	if next is None:
 		next = vFULL
 
-	if next != cur:
+	if True or next != cur:
 		cur = next
 		cur_cam = (cur_cam + 1) % 2
 		ui_cam.set_text("%d-%s" % (cur_cam, cur))
@@ -434,7 +441,7 @@ def camera_loop():
 	top = min(float(len(active_chans))/6,1)
 	top = int(60-(40*top))
 	step = random.randint(10,top)
-	step = 2
+	step = 10
 
 	time.sleep(step)
 
