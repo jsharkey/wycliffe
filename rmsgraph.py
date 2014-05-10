@@ -341,7 +341,100 @@ cur_cam = 1
 
 import urllib2
 
+
+
+ATEM_HOST = '10.35.36.5'
+ATEM_PORT = 9910
+
+def rand(max):
+	return int(random.uniform(0,max))
+
+class AtemThread(threading.Thread):
+	def __init__(self):
+		threading.Thread.__init__(self)
+		self.daemon = True
+				
+	def send_hello(self):
+		uid   = (((rand(254) + 1) << 8) + rand(254) + 1) & 0x7FFF
+		data  = struct.pack("!HHHH", 0x0100, 0x0000, 0x0000, 0x0000)
+		hello = struct.pack("!BBHHHHH", 0x10, 0x14, uid, 0, 0, 0x0000, 0) + data
+		self.sock.send(hello)
+		return uid
+		
+	def send_pkt(self, cmd, cout, un1, un2, cin, payload):
+		ln = 12 + len(payload)
+		cmd += ((ln >> 8) & 0x07)
+		pkt = struct.pack("!BBHHHHH", cmd, ln, self.uid, cout, un1, un2, cin) + payload
+		#if not ln==12:
+		#    print "Send:", hexlify(pkt)
+		#    print_pkt(cmd, ln, uid, cout, un1, un2, cin, payload)
+		self.sock.send(pkt)
+
+	def recv_pkt(self, data):
+		pkt = data
+		cmd, len, uid, cnt_out, unkn1, unkn2, cnt_in = struct.unpack("!BBHHHHH", data[0:12])
+		payload = data[12:]
+		#(port, ipaddr) = sockaddr_in($sock->peername)
+		len = ((cmd & 0x07) << 8) + len
+		cmd = cmd & 0xF8
+		return (cmd, len, uid, cnt_out, unkn1, unkn2, cnt_in, payload)
+
+	def run(self):
+		self.sock = socket(AF_INET, SOCK_DGRAM)
+		self.sock.connect((ATEM_HOST, ATEM_PORT))
+		self.sock.setblocking(False)
+
+		self.uid = self.send_hello()
+		self.cnt_in = 0
+		self.mycnt = 0
+
+		hello_finished = False
+		
+		self.outgoing = []
+	
+		while True:
+			if len(self.outgoing) > 0:
+				time.sleep(0.5)
+				atem.send_pkt(0x88, atem.cnt_in, 0, 0, atem.mycnt, self.outgoing.pop(0))
+
+			try:
+				data = self.sock.recv(1024*10)
+			except:
+				time.sleep(0.02)
+				continue
+
+			args = self.recv_pkt(data)
+			cmd, ln, self.uid, cnt_out, unkn1, unkn2, self.cnt_in, payload = args
+			if cmd & 0x10:
+				self.send_pkt(0x80, 0, 0, 0x0050, 0, '')
+				continue
+			elif cmd & 0x08:
+				if self.cnt_in == 0x04 and not hello_finished:
+					hello_finished = True
+					self.mycnt+=1
+					print "Hellofinish"
+				if hello_finished:
+					self.send_pkt(0x80, self.cnt_in, 0, 0, 0, '')
+					self.send_pkt(0x08, 0, 0, 0, self.mycnt, '')
+					self.mycnt+=1
+
+			if (self.mycnt == 0 and hello_finished):
+				cmd = 0x80
+				
+
+
+
+atem = AtemThread()
+atem.start()
+
+
+
+
+
+first_run = True
+
 def camera_move(cam, preset):
+	global first_run
 	#return
 
 	ser = serial.Serial('/dev/ttyUSB0')
@@ -358,10 +451,23 @@ def camera_move(cam, preset):
 	
 	ser.close()
 	
+
+	if cam == 1: other_cam = 2
+	else: other_cam = 1
+
+	#if first_run:
+	#	atem.outgoing.append(struct.pack("!HHHHHH", 0x000c, 0x0000, 0x4350, 0x7649, 0x0000, other_cam))
+	#	atem.outgoing.append(struct.pack("!HHHHHH", 0x000c, 0x0000, 0x4350, 0x6749, 0x0000, cam))
+
 	# wait 5 seconds to settle, then ask atem to switch
 	time.sleep(6)
-	urllib2.urlopen('http://localhost:9090/')
 
+	# pull trigger
+	#atem.cnt_in = 0
+	#atem.mycnt = 0
+	atem.outgoing.append(struct.pack("!HHHHHH", 0x000c, 0x0000, 0x4441, 0x7574, 0x00cf, 0xb900))
+	
+	
 
 stale = 0
 scores = {}
@@ -466,13 +572,16 @@ rms.start()
 cam = CamThread()
 cam.start()
 
+if True:
 
-def refresh(loop=None, user_data=None):
-	loop.set_alarm_in(0.01, refresh)
+	def refresh(loop=None, user_data=None):
+		loop.set_alarm_in(0.01, refresh)
 
-loop = urwid.MainLoop(page, palette, unhandled_input=exit_on_q)
-refresh(loop, None)
-loop.run()
+	loop = urwid.MainLoop(page, palette, unhandled_input=exit_on_q)
+	refresh(loop, None)
+	loop.run()
 
-exit(0)
+	exit(0)
 
+else:
+	time.sleep(20)
