@@ -23,6 +23,23 @@ import random, collections, operator
 
 import serial
 
+import sys, struct, re, threading, time
+import socket
+import urwid
+import collections
+import binascii
+import urllib2
+import numpy
+import dbus
+
+from socket import *
+
+# apt-get install python-numpy python-serial
+# apt-get install libqt4-dev
+# apt-get install python-dbus
+# apt-get install python-dev python-pip
+# pip install urwid
+
 
 class Channel():
 	def __init__(self, title, w, matches):
@@ -42,20 +59,6 @@ class Shot():
 	def __repr__(self):
 		return self.title
 
-"""
-vKEYS = Shot(1, "vKEYS")
-vDRUMS = Shot(2, "vDRUMS")
-vWL = Shot(3, "vWL")
-vPL = Shot(4, "vPL")
-vMIDI = Shot(5, "vMIDI")
-vBG = Shot(6, "vBG")
-vC = Shot(7, "vC")
-vCL = Shot(8, "vCL")
-vCR = Shot(9, "vCR")
-vL = Shot(10, "vL")
-vR = Shot(11, "vR")
-vFULL = Shot(12, "vFULL")
-"""
 
 vKEYS = Shot(1, "vKEYS")
 vDRUMS = Shot(2, "vDRUMS")
@@ -70,13 +73,12 @@ vC = Shot(10, "vC")
 vCR = Shot(11, "vCR")
 vCL = Shot(12, "vCL")
 
-
 aPLVOX = Channel("aPLVOX", 1.2, "PLVOX,PLVOC")
 aWLVOX = Channel("aWLVOX", 0.8, "WLVOX1,WLVOX2")
 aBGV = Channel("aBGV", 0.8, "BGV1,BGV2,BGV3")
 aKEYVOX = Channel("aKEYVOX", 0.6, "KEYVOX")
 aMIDIVOX = Channel("aMIDIVOX", 0.6, "MIDIVOX")
-aWLINST = Channel("aWLINST", 0.5, "EGT1,AGT1")
+aWLINST = Channel("aWLINST", 0.5, "EGT1,EGT2,AGT1,AGT2")
 aKEY = Channel("aKEY", 0.5, "KEYL,KEYR,KEY")
 aMIDI = Channel("aMIDI", 0.5, "MIDIL,MIDIR,MIDI")
 aDRUMS = Channel("aDRUMS", 0.5, "DRUMS,KICK,SNARE,OHL,OHR")
@@ -102,16 +104,6 @@ for c, v in CONFIG.iteritems():
 	while None in v:
 		v.remove(None)
 
-
-
-# apt-get install python-dev python-pip
-# pip install urwid
-
-import sys, struct, re, threading, time
-import socket
-from socket import *
-import urwid
-
 def exit_on_q(key):
     if key in ('q', 'Q'):
         raise urwid.ExitMainLoop()
@@ -120,9 +112,8 @@ palette = [
     ('banner', 'black', 'light gray'),
     ('streak', 'black', 'dark red'),
     ('inactive', 'black', 'dark blue'),
-	('active', 'black', 'dark red'),
-    ]
-
+    ('active', 'black', 'dark red'),
+]
 
 rows = []
 channel_ui = []
@@ -152,18 +143,14 @@ for i in range(1,128):
 page = urwid.ListBox(urwid.SimpleFocusListWalker(rows))
 
 
-# spwan thread to watch for updates
-
-#exit(0)
-
-DANTE = "10.35.37.22"
+DANTE = "10.35.0.2"
 CTL_PORT = 8800
 INFO_PORT = 4440
 RMS_PORT = 8751
 
 LOCAL_IDENT = "001c25bf39850000"
 #LOCAL_IDENT = "CAFECAFECAFE0000"
-LOCAL_IP = "10.35.20.20"
+LOCAL_IP = "10.35.0.6"
 
 class InfoPacket():
 	# t3=0000 send
@@ -213,14 +200,17 @@ data = "271201bf000920100001201e00010001010c00020002011100030003011a000400040123
 p = InfoPacket.incoming(data)
 total, ret = struct.unpack("!BB", p.data[0:2])
 channels = {}
+channels_rev = {}
 
 for n in range(ret):
 	ptr = 2+(n*6)
 	n, target, label_ptr = struct.unpack("!3H", p.data[ptr:ptr+6])
 	label_ptr -= 10
 	label = p.data[label_ptr:p.data.index("\0", label_ptr)]
+	target -= 1
 	channels[target] = label
-	channel_ui[target-1].label.set_text(label)
+	channels_rev[label] = target
+	channel_ui[target].label.set_text(label)
 	#print target, label
 
 
@@ -253,10 +243,6 @@ p.append_hex("0000")
 csock.sendto(p.pack(), (DANTE, CTL_PORT))
 
 
-import collections
-
-recent = collections.defaultdict(lambda: float(128))
-
 ACTIVE_THRESH = {
 	'KICK': 0.6,
 	'OHR': 0.6, 'OHL': 0.6,
@@ -269,20 +255,24 @@ ACTIVE_THRESH = {
 	'KEYL': 0.5, 'KEYR': 0.5,
 	'MIDIL': 0.5, 'MIDIR': 0.5,
 
-	'BGV1': 0.65,
-	'BGV2': 0.65,
-	'BGV3': 0.65,
-	
-	'PLVOC': 0.8,
-	'WLVOX1': 0.7,
-	'WLVOX2': 0.7,
-	'KEYVOX': 0.7,
-	'MIDIVOX': 0.7,
+	'BGV1': 0.1,
+	'BGV2': 0.1,
+	'BGV3': 0.1,
+	'PLVOC': 0.1,
+	'WLVOX1': 0.1,
+	'WLVOX2': 0.1,
+	'KEYVOX': 0.1,
+	'MIDIVOX': 0.1,
 }
 
-active_chans = set()
+# mic-based channels that need filtering
+# will be normalized against first channel
+FILTER_CHANS = ["FOHL","BGV1","BGV2","BGV3","PLVOC","WLVOX1","WLVOX2","KEYVOX","MIDIVOX"]
+FILTER_HISTORY = 10
 
-import binascii
+last_rms = None
+rms_history = []
+active_chans = set()
 
 class RmsThread(threading.Thread):
 	def __init__(self):
@@ -290,6 +280,8 @@ class RmsThread(threading.Thread):
 		self.daemon = True
 		
 	def run(self):
+		global last_rms, rms_history, active_chans
+		
 		while True:
 			data, addr = rsock.recvfrom(1024)
 			p = InfoPacket.incoming(data)
@@ -297,41 +289,68 @@ class RmsThread(threading.Thread):
 			#p = InfoPacket.incoming(rms_data)
 			#time.sleep(1)
 
-			with open("dump.raw", "a") as f:
-				f.write("==")
-				f.write(p.data)
-				f.write("==\n")
+			#with open("dump.raw", "a") as f:
+			#	f.write("==")
+			#	f.write(p.data)
+			#	f.write("==\n")
 			
 			rms = struct.unpack("!128B", p.data[14+3:])
-
-			for i in range(len(rms)):
-				ch = i+1
+			rms = [255-val for val in rms]
+			
+			# TODO: remove testing data
+			rms = [random.randint(0,254) for val in rms]
+			#rms = [32 for val in rms]
+			
+			if last_rms is None:
+				last_rms = rms
+				continue
+			
+			# filter transient spikes/drops
+			# they happen frequently enough, and mess with stddev
+			for i in range(64):
+				if rms[i] < (last_rms[i] - 60):
+					rms[i] = last_rms[i]
+			
+			# accumulate rms history
+			rms_history.append(rms)
+			if len(rms_history) < FILTER_HISTORY: continue
+			rms_history = rms_history[-FILTER_HISTORY:]
+			
+			# calculate stddev for each filter channel
+			# other channels just passthrough from copy
+			res = rms[:]
+			for ch_label in FILTER_CHANS:
+				ch_index = channels_rev[ch_label]
+				recent = [ rec[ch_index] for rec in rms_history ]
+				res[ch_index] = numpy.std(recent)
+				
+			# and normalize against first channel
+			key_index = channels_rev[FILTER_CHANS[0]]
+			for ch_label in FILTER_CHANS[1:]:
+				ch_index = channels_rev[ch_label]
+				res[ch_index] -= res[key_index]
+			
+			for i in range(len(res)):
+				ch = i
 				if ch in channels:
 					#print ch, channels[ch], rms[i]
-					val = 255-rms[i]
-					if val > recent[i]:
-						recent[i] = (recent[i] * 0.8) + (val * 0.2)
-					else:
-						recent[i] = (recent[i] * 0.99) + (val * 0.01)
-
+					val = res[i]
 					ui = channel_ui[i]
 
-					#recent[i] = random.randint(0,254)
-					ui.level.set_completion(recent[i])
-					title = channels[i+1]
-
+					ui.level.set_completion(val)
+					label = channels[i]
+					
 					active = False
-					if title in ACTIVE_THRESH:
-						active = (float(recent[i]) / 255 > ACTIVE_THRESH[title])
+					if label in ACTIVE_THRESH:
+						active = (float(val) / 255 > ACTIVE_THRESH[label])
 						
-					active = True
 					if active:
 						ui.level.complete = 'active'
-						active_chans.add(title)
+						active_chans.add(label)
 					else:
 						ui.level.complete = 'inactive'
-						if title in active_chans:
-							active_chans.remove(title)
+						if label in active_chans:
+							active_chans.remove(label)
 							
 			camera_score()
 
@@ -339,135 +358,54 @@ class RmsThread(threading.Thread):
 cur = None
 cur_cam = 1
 
-import urllib2
-
-
-
-ATEM_HOST = '10.35.36.5'
-ATEM_PORT = 9910
-
-def rand(max):
-	return int(random.uniform(0,max))
-
-class AtemThread(threading.Thread):
-	def __init__(self):
-		threading.Thread.__init__(self)
-		self.daemon = True
-				
-	def send_hello(self):
-		uid   = (((rand(254) + 1) << 8) + rand(254) + 1) & 0x7FFF
-		data  = struct.pack("!HHHH", 0x0100, 0x0000, 0x0000, 0x0000)
-		hello = struct.pack("!BBHHHHH", 0x10, 0x14, uid, 0, 0, 0x0000, 0) + data
-		self.sock.send(hello)
-		return uid
-		
-	def send_pkt(self, cmd, cout, un1, un2, cin, payload):
-		ln = 12 + len(payload)
-		cmd += ((ln >> 8) & 0x07)
-		pkt = struct.pack("!BBHHHHH", cmd, ln, self.uid, cout, un1, un2, cin) + payload
-		#if not ln==12:
-		#    print "Send:", hexlify(pkt)
-		#    print_pkt(cmd, ln, uid, cout, un1, un2, cin, payload)
-		self.sock.send(pkt)
-
-	def recv_pkt(self, data):
-		pkt = data
-		cmd, len, uid, cnt_out, unkn1, unkn2, cnt_in = struct.unpack("!BBHHHHH", data[0:12])
-		payload = data[12:]
-		#(port, ipaddr) = sockaddr_in($sock->peername)
-		len = ((cmd & 0x07) << 8) + len
-		cmd = cmd & 0xF8
-		return (cmd, len, uid, cnt_out, unkn1, unkn2, cnt_in, payload)
-
-	def run(self):
-		self.sock = socket(AF_INET, SOCK_DGRAM)
-		self.sock.connect((ATEM_HOST, ATEM_PORT))
-		self.sock.setblocking(False)
-
-		self.uid = self.send_hello()
-		self.cnt_in = 0
-		self.mycnt = 0
-
-		hello_finished = False
-		
-		self.outgoing = []
-	
-		while True:
-			if len(self.outgoing) > 0:
-				time.sleep(0.5)
-				atem.send_pkt(0x88, atem.cnt_in, 0, 0, atem.mycnt, self.outgoing.pop(0))
-
-			try:
-				data = self.sock.recv(1024*10)
-			except:
-				time.sleep(0.02)
-				continue
-
-			args = self.recv_pkt(data)
-			cmd, ln, self.uid, cnt_out, unkn1, unkn2, self.cnt_in, payload = args
-			if cmd & 0x10:
-				self.send_pkt(0x80, 0, 0, 0x0050, 0, '')
-				continue
-			elif cmd & 0x08:
-				if self.cnt_in == 0x04 and not hello_finished:
-					hello_finished = True
-					self.mycnt+=1
-					print "Hellofinish"
-				if hello_finished:
-					self.send_pkt(0x80, self.cnt_in, 0, 0, 0, '')
-					self.send_pkt(0x08, 0, 0, 0, self.mycnt, '')
-					self.mycnt+=1
-
-			if (self.mycnt == 0 and hello_finished):
-				cmd = 0x80
-				
-
-
-
-atem = AtemThread()
-atem.start()
-
-
-
-
-
 first_run = True
 
+
+bus = dbus.SessionBus()
+
+atem = bus.get_object('com.blackmagicdesign.QAtemConnection', '/QAtemConnection')
+atem = dbus.Interface(atem, dbus_interface='com.blackmagicdesign.QAtemConnection')
+
+ENABLE_SERIAL = False
+
 def camera_move(cam, preset):
-	global first_run
-	#return
-
-	ser = serial.Serial('/dev/ttyUSB0')
-	ser.write("\r\n")
-	ser.readline()
+	global first_run, atem
 	
-	ser.write("InCtlA %d\r\n" % (cam))
-	ser.flush()
-	ser.readline()
+	if ENABLE_SERIAL and preset is not None:
+		ser = serial.Serial('/dev/ttyUSB0')
+		ser.write("\r\n")
+		ser.readline()
+		
+		ser.write("InCtlA %d\r\n" % (cam))
+		ser.flush()
+		ser.readline()
 
-	ser.write("Preset %d\r\n" % (preset))
-	ser.flush()
-	ser.readline()
+		ser.write("Preset %d\r\n" % (preset))
+		ser.flush()
+		ser.readline()
+		
+		ser.close()
 	
-	ser.close()
-	
-
 	if cam == 1: other_cam = 2
 	else: other_cam = 1
 
-	#if first_run:
-	#	atem.outgoing.append(struct.pack("!HHHHHH", 0x000c, 0x0000, 0x4350, 0x7649, 0x0000, other_cam))
-	#	atem.outgoing.append(struct.pack("!HHHHHH", 0x000c, 0x0000, 0x4350, 0x6749, 0x0000, cam))
-
-	# wait 5 seconds to settle, then ask atem to switch
+	if first_run:
+		atem.disconnectFromSwitcher()
+		atem.connectToSwitcher("10.35.36.5")
+		time.sleep(1)
+		atem.changeProgramInput(other_cam)
+		time.sleep(1)
+		atem.changePreviewInput(cam)
+		first_run = False
+	else:
+		atem.changePreviewInput(cam)
+	
+	# wait for camera to settle, then ask atem to switch
 	time.sleep(6)
-
+	
 	# pull trigger
-	#atem.cnt_in = 0
-	#atem.mycnt = 0
-	atem.outgoing.append(struct.pack("!HHHHHH", 0x000c, 0x0000, 0x4441, 0x7574, 0x00cf, 0xb900))
-	
-	
+	atem.doAuto()
+
 
 stale = 0
 scores = {}
@@ -476,7 +414,7 @@ def camera_score():
 	global scores, stale
 
 	stale += 1
-	if stale < 1: return
+	if stale < 10: return
 	else: stale = 0
 	
 	# okay, time to transition! what's active?
@@ -534,13 +472,16 @@ def camera_loop():
 			break
 
 	if next is None:
-		next = vFULL
-
-	if True or next != cur:
-		cur = next
-		cur_cam = (cur_cam + 1) % 2
-		ui_cam.set_text("%d-%s" % (cur_cam, cur))
-		camera_move(cur_cam + 1, cur.preset)
+		# nothing active, switch to graphic
+		ui_cam.set_text("LOGO")
+		camera_move(12, None)
+	else:
+		# we have active channels, switch it up!
+		if True or next != cur:
+			cur = next
+			cur_cam = (cur_cam + 1) % 2
+			ui_cam.set_text("%d-%s" % (cur_cam, cur))
+			camera_move(cur_cam + 1, cur.preset)
 
 	# camera lingers 10-30 sec
 	# 60 sec => 20 sec
@@ -573,13 +514,14 @@ cam = CamThread()
 cam.start()
 
 if True:
-
 	def refresh(loop=None, user_data=None):
 		loop.set_alarm_in(0.01, refresh)
 
 	loop = urwid.MainLoop(page, palette, unhandled_input=exit_on_q)
 	refresh(loop, None)
 	loop.run()
+
+	atem.disconnectFromSwitcher()
 
 	exit(0)
 
