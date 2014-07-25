@@ -31,6 +31,7 @@ import binascii
 import urllib2
 import numpy
 import dbus
+import telnetlib
 
 from socket import *
 
@@ -244,9 +245,9 @@ csock.sendto(p.pack(), (DANTE, CTL_PORT))
 
 
 ACTIVE_THRESH = {
-	'KICK': 0.6,
-	'OHR': 0.6, 'OHL': 0.6,
-	'TOM1': 0.6, 'TOM2': 0.6,
+	'KICK': 0.7,
+	'OHR': 0.7, 'OHL': 0.7,
+	'TOM1': 0.7, 'TOM2': 0.7,
 	'SNARETOP': 0.7, 'SNAREBOT': 0.7,
 
 	'AGT1': 0.5, 'AGT2': 0.5,
@@ -255,20 +256,20 @@ ACTIVE_THRESH = {
 	'KEYL': 0.5, 'KEYR': 0.5,
 	'MIDIL': 0.5, 'MIDIR': 0.5,
 
-	'BGV1': 0.1,
-	'BGV2': 0.1,
-	'BGV3': 0.1,
-	'PLVOC': 0.1,
-	'WLVOX1': 0.1,
-	'WLVOX2': 0.1,
-	'KEYVOX': 0.1,
-	'MIDIVOX': 0.1,
+	'BGV1': 0.05,
+	'BGV2': 0.05,
+	'BGV3': 0.05,
+	'PLVOC': 0.05,
+	'WLVOX1': 0.05,
+	'WLVOX2': 0.05,
+	'KEYVOX': 0.05,
+	'MIDIVOX': 0.05,
 }
 
 # mic-based channels that need filtering
 # will be normalized against first channel
 FILTER_CHANS = ["FOHL","BGV1","BGV2","BGV3","PLVOC","WLVOX1","WLVOX2","KEYVOX","MIDIVOX"]
-FILTER_HISTORY = 10
+FILTER_HISTORY = 50
 
 last_rms = None
 rms_history = []
@@ -298,7 +299,7 @@ class RmsThread(threading.Thread):
 			rms = [255-val for val in rms]
 			
 			# TODO: remove testing data
-			rms = [random.randint(0,254) for val in rms]
+			#rms = [random.randint(0,254) for val in rms]
 			#rms = [32 for val in rms]
 			
 			if last_rms is None:
@@ -329,6 +330,7 @@ class RmsThread(threading.Thread):
 			for ch_label in FILTER_CHANS[1:]:
 				ch_index = channels_rev[ch_label]
 				res[ch_index] -= res[key_index]
+				res[ch_index] *= 4
 			
 			for i in range(len(res)):
 				ch = i
@@ -367,6 +369,7 @@ atem = bus.get_object('com.blackmagicdesign.QAtemConnection', '/QAtemConnection'
 atem = dbus.Interface(atem, dbus_interface='com.blackmagicdesign.QAtemConnection')
 
 ENABLE_SERIAL = False
+ENABLE_TELNET = True
 
 def camera_move(cam, preset):
 	global first_run, atem
@@ -386,19 +389,32 @@ def camera_move(cam, preset):
 		
 		ser.close()
 	
+	if ENABLE_TELNET and preset is not None:
+		tel = telnetlib.Telnet()
+		tel.open('10.35.0.3', 10001)
+		tel.write("\r\n")
+		tel.read_until(">")
+		tel.write("InCtlA %d\r\n" % (cam))
+		tel.read_until(">")
+		tel.write("Preset %d\r\n" % (preset))
+		tel.read_until(">")
+		tel.close()
+
 	if cam == 1: other_cam = 2
-	else: other_cam = 1
+	elif cam == 2: other_cam = 1
+	else: other_cam = cam
+	#other_cam = cam
 
 	if first_run:
 		atem.disconnectFromSwitcher()
 		atem.connectToSwitcher("10.35.36.5")
 		time.sleep(1)
-		atem.changeProgramInput(other_cam)
+		atem.changeProgramInput(cam)
 		time.sleep(1)
-		atem.changePreviewInput(cam)
+		atem.changePreviewInput(other_cam)
 		first_run = False
 	else:
-		atem.changePreviewInput(cam)
+		atem.changePreviewInput(other_cam)
 	
 	# wait for camera to settle, then ask atem to switch
 	time.sleep(6)
