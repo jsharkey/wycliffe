@@ -120,13 +120,14 @@ rows = []
 channel_ui = []
 
 ui_summary = urwid.Text(('label', u"[camera summary]"), align='left')
+ui_sum2 = urwid.Text(('label', u"[audio summary]"), align='left')
 ui_cam = urwid.BigText('[]', urwid.font.HalfBlock5x4Font())
 
 #rows.append(ui_summary)
 #rows.append()
 
 wrapped_ui_cam = urwid.Padding(ui_cam, width='clip')
-rows.append(urwid.Columns([ui_summary, ('weight', 0.3, wrapped_ui_cam)], dividechars=1))
+rows.append(urwid.Columns([ui_summary, ('weight', 0.3, ui_sum2), ('weight', 0.3, wrapped_ui_cam)], dividechars=1))
 
 
 class VisualChannel():
@@ -226,6 +227,8 @@ csock.bind(('', CTL_PORT))
 
 rsock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
 rsock.bind(('', RMS_PORT))
+#rsock.setsockopt(SOL_SOCKET, SO_RCVBUF, 1)
+#rsock.setsockopt(SOL_SOCKET, SO_TIMESTAMP, 1)
 
 
 # request rms stream
@@ -245,10 +248,10 @@ csock.sendto(p.pack(), (DANTE, CTL_PORT))
 
 
 ACTIVE_THRESH = {
-	'KICK': 0.7,
-	'OHR': 0.7, 'OHL': 0.7,
-	'TOM1': 0.7, 'TOM2': 0.7,
-	'SNARETOP': 0.7, 'SNAREBOT': 0.7,
+	'KICK': 0.05,
+	'OHR': 0.03, 'OHL': 0.03,
+	#'TOM1': 0.2, 'TOM2': 0.2,
+	'SNARETOP': 0.03, 'SNAREBOT': 0.03,
 
 	'AGT1': 0.5, 'AGT2': 0.5,
 	'EGT1': 0.5,
@@ -268,11 +271,12 @@ ACTIVE_THRESH = {
 
 # mic-based channels that need filtering
 # will be normalized against first channel
-FILTER_CHANS = ["FOHL","BGV1","BGV2","BGV3","PLVOC","WLVOX1","WLVOX2","KEYVOX","MIDIVOX"]
-FILTER_HISTORY = 50
+FILTER_CHANS = ["FOHL","BGV1","BGV2","BGV3","PLVOC","WLVOX1","WLVOX2","KEYVOX","MIDIVOX",
+	"KICK","SNARETOP","SNAREBTM","OHL","OHR"]
+FILTER_HISTORY = 100
 
 last_rms = None
-rms_history = []
+rms_history = collections.deque(maxlen=FILTER_HISTORY)
 active_chans = set()
 
 class RmsThread(threading.Thread):
@@ -284,38 +288,47 @@ class RmsThread(threading.Thread):
 		global last_rms, rms_history, active_chans
 		
 		while True:
-			data, addr = rsock.recvfrom(1024)
-			p = InfoPacket.incoming(data)
-			
-			#p = InfoPacket.incoming(rms_data)
-			#time.sleep(1)
+			# read everything pending
+			collected = 0
+			start = time.time()
+			try:
+				while time.time() - start < 5:
+					#rsock.setblocking(0)
+					data, addr = rsock.recvfrom(1024)
+					p = InfoPacket.incoming(data)
+					collected += 1
+					
+					#p = InfoPacket.incoming(rms_data)
+					#time.sleep(1)
 
-			#with open("dump.raw", "a") as f:
-			#	f.write("==")
-			#	f.write(p.data)
-			#	f.write("==\n")
+					#with open("dump.raw", "a") as f:
+					#	f.write("==")
+					#	f.write(p.data)
+					#	f.write("==\n")
+					
+					rms = struct.unpack("!128B", p.data[14+3:])
+					rms = [255-val for val in rms]
+					
+					# TODO: remove testing data
+					#rms = [random.randint(0,254) for val in rms]
+					#rms = [32 for val in rms]
+					
+					if last_rms is None:
+						last_rms = rms
+						continue
+					
+					# filter transient spikes/drops
+					# they happen frequently enough, and mess with stddev
+					for i in range(64):
+						if rms[i] < (last_rms[i] - 60):
+							rms[i] = last_rms[i]
+					
+					# accumulate rms history
+					rms_history.append(rms)
+			except error as e:
+				ui_summary.set_text("c=%d" % (e))
 			
-			rms = struct.unpack("!128B", p.data[14+3:])
-			rms = [255-val for val in rms]
-			
-			# TODO: remove testing data
-			#rms = [random.randint(0,254) for val in rms]
-			#rms = [32 for val in rms]
-			
-			if last_rms is None:
-				last_rms = rms
-				continue
-			
-			# filter transient spikes/drops
-			# they happen frequently enough, and mess with stddev
-			for i in range(64):
-				if rms[i] < (last_rms[i] - 60):
-					rms[i] = last_rms[i]
-			
-			# accumulate rms history
-			rms_history.append(rms)
-			if len(rms_history) < FILTER_HISTORY: continue
-			rms_history = rms_history[-FILTER_HISTORY:]
+			ui_sum2.set_text("coll=%d, n=%d" % (collected, len(rms_history)))
 			
 			# calculate stddev for each filter channel
 			# other channels just passthrough from copy
@@ -429,10 +442,6 @@ scores = {}
 def camera_score():
 	global scores, stale
 
-	stale += 1
-	if stale < 10: return
-	else: stale = 0
-	
 	# okay, time to transition! what's active?
 	msg = "active chans %s\n" % (active_chans)
 
@@ -482,7 +491,13 @@ def camera_loop():
 	#ui_cam.set_text("%d" % (len(scores)))
 
 	for k, v in scores.iteritems():
+		# always pick at least one preset
+		if next is None:
+			next = k
 		pick -= v
+		# but it's lame to pick same preset twice in row
+		if k == cur:
+			continue
 		if pick <= 0:
 			next = k
 			break
