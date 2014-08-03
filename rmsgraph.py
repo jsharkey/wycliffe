@@ -32,12 +32,13 @@ import urllib2
 import numpy
 import dbus
 import telnetlib
-
-from socket import *
+import paramiko
+import errno
 
 # apt-get install python-numpy python-serial
 # apt-get install libqt4-dev
 # apt-get install python-dbus
+# apt-get install python-paramiko
 # apt-get install python-dev python-pip
 # pip install urwid
 
@@ -120,14 +121,12 @@ rows = []
 channel_ui = []
 
 ui_summary = urwid.Text(('label', u"[camera summary]"), align='left')
-ui_sum2 = urwid.Text(('label', u"[audio summary]"), align='left')
 ui_cam = urwid.BigText('[]', urwid.font.HalfBlock5x4Font())
+ui_log = urwid.Text(('label', u"[log]"), align='left')
 
-#rows.append(ui_summary)
-#rows.append()
 
 wrapped_ui_cam = urwid.Padding(ui_cam, width='clip')
-rows.append(urwid.Columns([ui_summary, ('weight', 0.3, ui_sum2), ('weight', 0.3, wrapped_ui_cam)], dividechars=1))
+rows.append(urwid.Columns([ui_summary, ('weight', 0.3, wrapped_ui_cam)], dividechars=1))
 
 
 class VisualChannel():
@@ -140,10 +139,28 @@ class VisualChannel():
 for i in range(1,128):
 	ch = VisualChannel(i)
 	channel_ui.append(ch)
-	rows.append(ch.row)
+	if 0 < i <= 8 or 16 < i <= 24 or 32 < i <= 40 or 48 < i <= 56:
+		rows.append(ch.row)
+
+rows.append(ui_log)
 
 page = urwid.ListBox(urwid.SimpleFocusListWalker(rows))
+loop = urwid.MainLoop(page, palette, unhandled_input=exit_on_q)
 
+
+LOG_SIZE = 16
+log_buffer = collections.deque(maxlen=LOG_SIZE)
+
+def log(msg):
+	global log_buffer
+	log_buffer.append("[%s] %s" % (time.strftime("%I:%M:%S %p", time.localtime()), msg))
+	ui_log.set_text("\n".join(log_buffer))
+
+for i in range(0,LOG_SIZE):
+	log('.')
+
+
+force_next = threading.Event()
 
 DANTE = "10.35.0.2"
 CTL_PORT = 8800
@@ -222,29 +239,58 @@ for n in range(ret):
 rms_data = "ffff009b3ca00000001dc10412e20000417564696e617465024040bfc9c4b8bcbcb8a9bfc9c4b8bcbcb8a9a7a88bac88afb1afa7a88bac88afb1afb0cccbcdb29ca6c0b0cccbcdb29ca6c0c4b1cccafefee3e2c4b1cccafefee3e2fefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe".decode("hex")
 
 
-csock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
+csock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 csock.bind(('', CTL_PORT))
 
-rsock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
+rsock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 rsock.bind(('', RMS_PORT))
 #rsock.setsockopt(SOL_SOCKET, SO_RCVBUF, 1)
 #rsock.setsockopt(SOL_SOCKET, SO_TIMESTAMP, 1)
 
 
-# request rms stream
-p = InfoPacket.outgoing(0x1200, 0xeeee, 0x3010, 0x0000)
-p.append_hex("0000")
-p.append_hex(LOCAL_IDENT)
-p.append_hex("0004 0018 0001 0022 000a")
-p.append_raw("DN965x-0412e2\0admii-PC\0")
-p.append_hex("00 0001 0026 0001")
-p.append_raw(struct.pack("!H", RMS_PORT))
-p.append_hex("0001 0000")
-p.append_raw(inet_pton(AF_INET, LOCAL_IP))
-p.append_raw(struct.pack("!H", RMS_PORT))
-p.append_hex("0000")
+def init_rms():
+	global csock
+	
+	log("init_rms()")
+	
+	# request rms stream
+	p = InfoPacket.outgoing(0x1200, 0xeeee, 0x3010, 0x0000)
+	p.append_hex("0000")
+	p.append_hex(LOCAL_IDENT)
+	p.append_hex("0004 0018 0001 0022 000a")
+	p.append_raw("DN965x-0412e2\0admii-PC\0")
+	p.append_hex("00 0001 0026 0001")
+	p.append_raw(struct.pack("!H", RMS_PORT))
+	p.append_hex("0001 0000")
+	p.append_raw(socket.inet_pton(socket.AF_INET, LOCAL_IP))
+	p.append_raw(struct.pack("!H", RMS_PORT))
+	p.append_hex("0000")
 
-csock.sendto(p.pack(), (DANTE, CTL_PORT))
+	csock.sendto(p.pack(), (DANTE, CTL_PORT))
+
+
+MFI_PASS = open("../mfi.pwd").read().strip()
+
+def kick_dante():
+	# first poke our heads around to inspect
+	
+	ssh = paramiko.SSHClient()
+	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+	ssh.connect('10.35.0.7', username='admin', password=MFI_PASS)
+	
+	stdin, stdout, stderr = ssh.exec_command("cat /proc/power/active_pwr1")
+	pwr = float(stdout.read().strip())
+	log("kick_dante() found active_pwr1 at %f" % pwr)
+	
+	if pwr < 1 or pwr > 14:
+		log("kick_dante() cycling power!")
+		ssh.exec_command("echo 0 > /proc/power/relay1")
+		time.sleep(1)
+		ssh.exec_command("echo 1 > /proc/power/relay1")
+		time.sleep(1)
+	
+	ssh.close()
+
 
 
 ACTIVE_THRESH = {
@@ -276,6 +322,7 @@ FILTER_CHANS = ["FOHL","BGV1","BGV2","BGV3","PLVOC","WLVOX1","WLVOX2","KEYVOX","
 FILTER_HISTORY = 100
 
 last_rms = None
+last_init = None
 rms_history = collections.deque(maxlen=FILTER_HISTORY)
 active_chans = set()
 
@@ -285,16 +332,33 @@ class RmsThread(threading.Thread):
 		self.daemon = True
 		
 	def run(self):
-		global last_rms, rms_history, active_chans
+		global last_rms, last_init, rms_history, active_chans
+		
+		dead_count = 0
 		
 		while True:
-			# read everything pending
-			collected = 0
-			start = time.time()
 			try:
-				while time.time() - start < 5:
-					#rsock.setblocking(0)
-					data, addr = rsock.recvfrom(1024)
+				# periodically re-init to avoid lag
+				if last_init is None or time.time() - last_init > 60:
+					init_rms()
+					last_init = time.time()
+				
+				if dead_count > 60*10:
+					log("RMS appears dead for %d samples; kicking" % dead_count)
+					dead_count = 0
+					kick_dante()
+				
+				# read everything pending
+				collected = 0
+				start = time.time()
+				while time.time() - start < 1:
+					rsock.setblocking(0)
+					try:
+						data, addr = rsock.recvfrom(1024)
+					except socket.error as e:
+						if e.errno == errno.EWOULDBLOCK: continue
+						else: raise
+						
 					p = InfoPacket.incoming(data)
 					collected += 1
 					
@@ -307,7 +371,12 @@ class RmsThread(threading.Thread):
 					#	f.write("==\n")
 					
 					rms = struct.unpack("!128B", p.data[14+3:])
-					rms = [255-val for val in rms]
+					rms = [254-val for val in rms]
+					
+					if sum(rms) == 0:
+						dead_count += 1
+					else:
+						dead_count = 0
 					
 					# TODO: remove testing data
 					#rms = [random.randint(0,254) for val in rms]
@@ -325,49 +394,53 @@ class RmsThread(threading.Thread):
 					
 					# accumulate rms history
 					rms_history.append(rms)
-			except error as e:
-				ui_summary.set_text("c=%d" % (e))
-			
-			ui_sum2.set_text("coll=%d, n=%d" % (collected, len(rms_history)))
-			
-			# calculate stddev for each filter channel
-			# other channels just passthrough from copy
-			res = rms[:]
-			for ch_label in FILTER_CHANS:
-				ch_index = channels_rev[ch_label]
-				recent = [ rec[ch_index] for rec in rms_history ]
-				res[ch_index] = numpy.std(recent)
 				
-			# and normalize against first channel
-			key_index = channels_rev[FILTER_CHANS[0]]
-			for ch_label in FILTER_CHANS[1:]:
-				ch_index = channels_rev[ch_label]
-				res[ch_index] -= res[key_index]
-				res[ch_index] *= 4
-			
-			for i in range(len(res)):
-				ch = i
-				if ch in channels:
-					#print ch, channels[ch], rms[i]
-					val = res[i]
-					ui = channel_ui[i]
-
-					ui.level.set_completion(val)
-					label = channels[i]
+				log("Collected %d samples, total history %d" % (collected, len(rms_history)))
+				if collected == 0:
+					dead_count += 10
+					continue
+				
+				# calculate stddev for each filter channel
+				# other channels just passthrough from copy
+				res = rms[:]
+				for ch_label in FILTER_CHANS:
+					ch_index = channels_rev[ch_label]
+					recent = [ rec[ch_index] for rec in rms_history ]
+					res[ch_index] = numpy.std(recent)
 					
-					active = False
-					if label in ACTIVE_THRESH:
-						active = (float(val) / 255 > ACTIVE_THRESH[label])
+				# and normalize against first channel
+				key_index = channels_rev[FILTER_CHANS[0]]
+				for ch_label in FILTER_CHANS[1:]:
+					ch_index = channels_rev[ch_label]
+					res[ch_index] -= res[key_index]
+					res[ch_index] *= 4
+				
+				for i in range(len(res)):
+					ch = i
+					if ch in channels:
+						#print ch, channels[ch], rms[i]
+						val = res[i]
+						ui = channel_ui[i]
+
+						ui.level.set_completion(val)
+						label = channels[i]
 						
-					if active:
-						ui.level.complete = 'active'
-						active_chans.add(label)
-					else:
-						ui.level.complete = 'inactive'
-						if label in active_chans:
-							active_chans.remove(label)
+						active = False
+						if label in ACTIVE_THRESH:
+							active = (float(val) / 255 > ACTIVE_THRESH[label])
 							
-			camera_score()
+						if active:
+							ui.level.complete = 'active'
+							active_chans.add(label)
+						else:
+							ui.level.complete = 'inactive'
+							if label in active_chans:
+								active_chans.remove(label)
+								
+				camera_score()
+
+			except:
+				log("RmsThread error: %s" % str(sys.exc_info()))
 
 
 cur = None
@@ -386,6 +459,8 @@ ENABLE_TELNET = True
 
 def camera_move(cam, preset):
 	global first_run, atem
+	
+	log("camera_move() input %s, preset %s" % (str(cam), str(preset)))
 	
 	if ENABLE_SERIAL and preset is not None:
 		ser = serial.Serial('/dev/ttyUSB0')
@@ -482,13 +557,11 @@ def camera_score():
 
 cur = None
 
-def camera_loop():
+def camera_next(loop=None, user_data=None):
 	global cur_cam, cur, scores
 		
 	next = None
 	pick = random.random()
-
-	#ui_cam.set_text("%d" % (len(scores)))
 
 	for k, v in scores.iteritems():
 		# always pick at least one preset
@@ -518,10 +591,10 @@ def camera_loop():
 	# 60 sec => 20 sec
 	top = min(float(len(active_chans))/6,1)
 	top = int(60-(40*top))
-	step = random.randint(10,top)
+	#step = random.randint(10,top)
 	step = 10
-
-	time.sleep(step)
+	
+	return step
 
 
 class CamThread(threading.Thread):
@@ -530,11 +603,17 @@ class CamThread(threading.Thread):
 		self.daemon = True
 		
 	def run(self):
-		try:
-			while True:
-				camera_loop()
-		except:
-			print >> sys.stderr, sys.exc_info()
+		global force_next
+		while True:
+			try:
+				linger = camera_next()
+				
+				log("CamThread lingering for %d seconds" % (linger))
+				force_next.wait(linger)
+				force_next.clear()
+				
+			except:
+				log("CamThread error: %s" % str(sys.exc_info()))
 
 
 
@@ -546,9 +625,8 @@ cam.start()
 
 if True:
 	def refresh(loop=None, user_data=None):
-		loop.set_alarm_in(0.01, refresh)
+		loop.set_alarm_in(0.05, refresh)
 
-	loop = urwid.MainLoop(page, palette, unhandled_input=exit_on_q)
 	refresh(loop, None)
 	loop.run()
 
