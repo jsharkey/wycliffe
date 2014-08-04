@@ -276,7 +276,7 @@ def kick_dante():
 	
 	ssh = paramiko.SSHClient()
 	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-	ssh.connect('10.35.0.7', username='admin', password=MFI_PASS)
+	ssh.connect('10.35.0.7', username='admin', password=MFI_PASS, timeout=20)
 	
 	stdin, stdout, stderr = ssh.exec_command("cat /proc/power/active_pwr1")
 	pwr = float(stdout.read().strip())
