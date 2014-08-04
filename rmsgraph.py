@@ -83,23 +83,23 @@ aMIDIVOX = Channel("aMIDIVOX", 0.6, "MIDIVOX")
 aWLINST = Channel("aWLINST", 0.5, "EGT1,EGT2,AGT1,AGT2")
 aKEY = Channel("aKEY", 0.5, "KEYL,KEYR,KEY")
 aMIDI = Channel("aMIDI", 0.5, "MIDIL,MIDIR,MIDI")
-aDRUMS = Channel("aDRUMS", 0.5, "DRUMS,KICK,SNARE,OHL,OHR")
+aDRUMS = Channel("aDRUMS", 0.5, "DRUMS,KICK,SNAREBOT,SNARETOP,OHL,OHR")
 aBASS = Channel("aBASS", 0.5, "BASS")
 
 AUDIO = [aPLVOX,aWLVOX,aBGV,aKEYVOX,aMIDIVOX,aWLINST,aKEY,aMIDI,aDRUMS,aBASS]
 
 CONFIG = {
 	aPLVOX: [vPL,vR,vCR],
-	aWLVOX: [vWL,vC,vCR,vCL,vFULL],
-	aBGV: [vBG,vR,vCR,vFULL],
-	aKEYVOX: [vKEYS,vL,vCL,vFULL],
-	aMIDIVOX: [vMIDI,vCR,vFULL],
+	aWLVOX: [vWL,vC,vCR,vCL,],
+	aBGV: [vBG,vR,vCR,],
+	aKEYVOX: [vKEYS,vL,vCL,],
+	aMIDIVOX: [vMIDI,vCR,],
 
-	aWLINST: [vWL,vC,vCR,vCL,vFULL],
-	aKEY: [vKEYS,vL,vCL,vFULL],
-	aMIDI: [vMIDI,vCR,vFULL],
-	aDRUMS: [vDRUMS,vCL,vFULL],
-	aBASS: [vL,vCL,vFULL],
+	aWLINST: [vWL,vC,vCR,vCL,],
+	aKEY: [vKEYS,vL,vCL,],
+	aMIDI: [vMIDI,vCR,],
+	aDRUMS: [vDRUMS,vCL,],
+	aBASS: [vL,vCL,],
 }
 
 for c, v in CONFIG.iteritems():
@@ -287,7 +287,7 @@ def kick_dante():
 		ssh.exec_command("echo 0 > /proc/power/relay1")
 		time.sleep(1)
 		ssh.exec_command("echo 1 > /proc/power/relay1")
-		time.sleep(1)
+		time.sleep(60)
 	
 	ssh.close()
 
@@ -295,15 +295,15 @@ def kick_dante():
 
 ACTIVE_THRESH = {
 	'KICK': 0.05,
-	'OHR': 0.03, 'OHL': 0.03,
+	'OHR': 0.05, 'OHL': 0.05,
 	#'TOM1': 0.2, 'TOM2': 0.2,
-	'SNARETOP': 0.03, 'SNAREBOT': 0.03,
+	'SNARETOP': 0.05, 'SNAREBOT': 0.05,
 
-	'AGT1': 0.5, 'AGT2': 0.5,
-	'EGT1': 0.5,
-	'BASS': 0.6,
-	'KEYL': 0.5, 'KEYR': 0.5,
-	'MIDIL': 0.5, 'MIDIR': 0.5,
+	'AGT1': 0.55, 'AGT2': 0.55,
+	'EGT1': 0.55, 'EGT2': 0.55,
+	'BASS': 0.55,
+	'KEYL': 0.55, 'KEYR': 0.55,
+	'MIDIL': 0.55, 'MIDIR': 0.55,
 
 	'BGV1': 0.05,
 	'BGV2': 0.05,
@@ -317,8 +317,13 @@ ACTIVE_THRESH = {
 
 # mic-based channels that need filtering
 # will be normalized against first channel
-FILTER_CHANS = ["FOHL","BGV1","BGV2","BGV3","PLVOC","WLVOX1","WLVOX2","KEYVOX","MIDIVOX",
-	"KICK","SNARETOP","SNAREBTM","OHL","OHR"]
+FILTER_CHANS = ["FOHL",
+	"BGV1","BGV2","BGV3","PLVOC","WLVOX1","WLVOX2","KEYVOX","MIDIVOX",
+	"KICK","SNARETOP","SNAREBTM","OHL","OHR",
+	#"AGT1","AGT2","EGT1","EGT2","BASS",
+	#"MIDIL","MIDIR","KEYL","KEYR","MIDI2L","MIDI2R",
+]
+NORM_CHANS = FILTER_CHANS[1:]
 FILTER_HISTORY = 100
 
 last_rms = None
@@ -339,7 +344,7 @@ class RmsThread(threading.Thread):
 		while True:
 			try:
 				# periodically re-init to avoid lag
-				if last_init is None or time.time() - last_init > 60:
+				if last_init is None or time.time() - last_init > 30:
 					init_rms()
 					last_init = time.time()
 				
@@ -388,14 +393,15 @@ class RmsThread(threading.Thread):
 					
 					# filter transient spikes/drops
 					# they happen frequently enough, and mess with stddev
-					for i in range(64):
-						if rms[i] < (last_rms[i] - 60):
-							rms[i] = last_rms[i]
+					#for i in range(64):
+					#	if rms[i] < (last_rms[i] - 60):
+					#		rms[i] = last_rms[i]
 					
 					# accumulate rms history
 					rms_history.append(rms)
 				
-				log("Collected %d samples, total history %d" % (collected, len(rms_history)))
+				if collected != 10:
+					log("Collected %d samples, total history %d" % (collected, len(rms_history)))
 				if collected == 0:
 					dead_count += 10
 					continue
@@ -410,7 +416,7 @@ class RmsThread(threading.Thread):
 					
 				# and normalize against first channel
 				key_index = channels_rev[FILTER_CHANS[0]]
-				for ch_label in FILTER_CHANS[1:]:
+				for ch_label in NORM_CHANS:
 					ch_index = channels_rev[ch_label]
 					res[ch_index] -= res[key_index]
 					res[ch_index] *= 4
@@ -591,8 +597,8 @@ def camera_next(loop=None, user_data=None):
 	# 60 sec => 20 sec
 	top = min(float(len(active_chans))/6,1)
 	top = int(60-(40*top))
-	#step = random.randint(10,top)
-	step = 10
+	step = random.randint(10,top)
+	#step = 10
 	
 	return step
 
