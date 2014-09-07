@@ -77,17 +77,18 @@ vC = Shot(10, "vC")
 vCR = Shot(11, "vCR")
 vCL = Shot(12, "vCL")
 vPULPIT = Shot(13, "vPULPIT")
+vLOGO = Shot(-1, "vLOGO")
 
 # audio clusters
-aPLVOX = Channel("aPLVOX", 1.2, "PLVOX,PLVOC")
+aPLVOX = Channel("aPLVOX", 1.6, "PLVOX,PLVOC")
 aWLVOX = Channel("aWLVOX", 0.8, "WLVOX1,WLVOX2")
 aBGV = Channel("aBGV", 0.8, "BGV1,BGV2,BGV3")
-aKEYVOX = Channel("aKEYVOX", 0.6, "KEYVOX")
-aMIDIVOX = Channel("aMIDIVOX", 0.6, "MIDIVOX")
+aKEYVOX = Channel("aKEYVOX", 0.5, "KEYVOX")
+aMIDIVOX = Channel("aMIDIVOX", 0.5, "MIDIVOX")
 aWLINST = Channel("aWLINST", 0.5, "EGT1,EGT2,AGT1,AGT2")
 aKEY = Channel("aKEY", 0.5, "KEYL,KEYR,KEY")
 aMIDI = Channel("aMIDI", 0.5, "MIDIL,MIDIR,MIDI")
-aDRUMS = Channel("aDRUMS", 0.5, "DRUMS,KICK,SNAREBOT,SNARETOP,OHL,OHR")
+aDRUMS = Channel("aDRUMS", 0.4, "DRUMS,KICK,SNAREBOT,SNARETOP,OHL,OHR")
 aBASS = Channel("aBASS", 0.5, "BASS")
 
 AUDIO = [aPLVOX,aWLVOX,aBGV,aKEYVOX,aMIDIVOX,aWLINST,aKEY,aMIDI,aDRUMS,aBASS]
@@ -111,9 +112,20 @@ for c, v in CONFIG.iteritems():
 	while None in v:
 		v.remove(None)
 
-def exit_on_q(key):
-    if key in ('q', 'Q'):
-        raise urwid.ExitMainLoop()
+test_high = {
+	"IMAC": False,
+	"PULPIT": False,
+}
+
+def handle_input(key):
+	global test_high
+
+	if key in ('q', 'Q'):
+		raise urwid.ExitMainLoop()
+	elif key == 'I': test_high["IMAC"] = True
+	elif key == 'i': test_high["IMAC"] = False
+	elif key == 'P': test_high["PULPIT"] = True
+	elif key == 'p': test_high["PULPIT"] = False
 
 palette = [
     ('banner', 'black', 'light gray'),
@@ -155,7 +167,7 @@ for i in range(1,128):
 rows.append(ui_log)
 
 page = urwid.ListBox(urwid.SimpleFocusListWalker(rows))
-loop = urwid.MainLoop(page, palette, unhandled_input=exit_on_q)
+loop = urwid.MainLoop(page, palette, unhandled_input=handle_input)
 
 
 LOG_SIZE = 16
@@ -304,16 +316,16 @@ def kick_dante():
 
 
 ACTIVE_THRESH = {
-	'KICK': 0.5,
-	'OHR': 0.5, 'OHL': 0.5,
+	'KICK': 0.4,
+	'OHR': 0.4, 'OHL': 0.4,
 	#'TOM1': 0.2, 'TOM2': 0.2,
-	'SNARETOP': 0.5, 'SNAREBOT': 0.5,
+	'SNARETOP': 0.4, 'SNAREBOT': 0.4,
 
-	'AGT1': 0.55, 'AGT2': 0.55,
-	'EGT1': 0.55, 'EGT2': 0.55,
-	'BASS': 0.55,
-	'KEYL': 0.55, 'KEYR': 0.55,
-	'MIDIL': 0.55, 'MIDIR': 0.55,
+	'AGT1': 0.24, 'AGT2': 0.24,
+	'EGT1': 0.28, 'EGT2': 0.28,
+	'BASS': 0.24,
+	'KEYL': 0.24, 'KEYR': 0.24,
+	'MIDIL': 0.24, 'MIDIR': 0.24,
 
 	'BGV1': 0.05,
 	'BGV2': 0.05,
@@ -324,8 +336,8 @@ ACTIVE_THRESH = {
 	'KEYVOX': 0.05,
 	'MIDIVOX': 0.05,
 
-	'IMAC': 0.45,
-	'PULPIT': 0.45,
+	'IMAC': 0.4,
+	'PULPIT': 0.4,
 }
 
 # mic-based channels that need filtering
@@ -346,13 +358,16 @@ rms_history = collections.deque(maxlen=FILTER_HISTORY)
 res_decay = collections.defaultdict(lambda: 0)
 active_chans = set()
 
+def rms_scale(x):
+	return  7.6381909547737905e+000 * pow(x,0) + -1.6518868854074009e-001 * pow(x,1)        +  4.4078524108431324e-003 * pow(x,2)
+
 class RmsThread(threading.Thread):
 	def __init__(self):
 		threading.Thread.__init__(self)
 		self.daemon = True
 		
 	def run(self):
-		global last_rms, last_init, rms_history, active_chans, force_next
+		global last_rms, last_init, rms_history, active_chans, force_next, test_high
 		
 		dead_count = 0
 		
@@ -371,7 +386,7 @@ class RmsThread(threading.Thread):
 				# read everything pending
 				collected = 0
 				start = time.time()
-				while time.time() - start < 0.2:
+				while time.time() - start < 1.0:
 					rsock.setblocking(0)
 					try:
 						data, addr = rsock.recvfrom(1024)
@@ -388,13 +403,14 @@ class RmsThread(threading.Thread):
 					#p = InfoPacket.incoming(rms_data)
 					#time.sleep(1)
 
-					with open("dump.raw", "a") as f:
-						f.write("==")
-						f.write(p.data)
-						f.write("==\n")
+					#with open("dump.raw", "a") as f:
+					#	f.write("==")
+					#	f.write(p.data)
+					#	f.write("==\n")
 					
 					rms = struct.unpack("!128B", p.data[14+3:])
-					rms = [254-val for val in rms]
+					#rms = [254-val for val in rms]
+					rms = [rms_scale(254-val) for val in rms]
 					
 					if sum(rms) == 0:
 						dead_count += 1
@@ -403,7 +419,8 @@ class RmsThread(threading.Thread):
 					
 					# TODO: remove testing data
 					#rms = [random.randint(0,254) for val in rms]
-					#rms = [32 for val in rms]
+					#for ch, v in test_high.iteritems():
+					#	rms[channels_rev[ch]] = 200 if v else 0
 					
 					if last_rms is None:
 						last_rms = rms
@@ -482,8 +499,6 @@ class RmsThread(threading.Thread):
 				log("RmsThread error: %s" % str(sys.exc_info()))
 
 
-cur = None
-cur_cam = 1
 
 first_run = True
 
@@ -501,7 +516,7 @@ def camera_move(cam, preset):
 	
 	log("camera_move() input %s, preset %s" % (str(cam), str(preset)))
 	
-	if ENABLE_SERIAL and preset is not None:
+	if ENABLE_SERIAL and preset != vLOGO:
 		ser = serial.Serial('/dev/ttyUSB0')
 		ser.write("\r\n")
 		ser.readline()
@@ -510,45 +525,43 @@ def camera_move(cam, preset):
 		ser.flush()
 		ser.readline()
 
-		ser.write("Preset %d\r\n" % (preset))
+		ser.write("Preset %d\r\n" % (preset.preset))
 		ser.flush()
 		ser.readline()
 		
 		ser.close()
 	
-	if ENABLE_TELNET and preset is not None:
+	if ENABLE_TELNET and preset != vLOGO:
 		tel = telnetlib.Telnet()
 		tel.open('10.35.0.3', 10001)
 		tel.write("\r\n")
 		tel.read_until(">")
 		tel.write("InCtlA %d\r\n" % (cam))
 		tel.read_until(">")
-		tel.write("Preset %d\r\n" % (preset))
+		tel.write("Preset %d\r\n" % (preset.preset))
 		tel.read_until(">")
 		tel.close()
-
-	if cam == 1: other_cam = 2
-	elif cam == 2: other_cam = 1
-	else: other_cam = cam
-	#other_cam = cam
 
 	if first_run:
 		atem.disconnectFromSwitcher()
 		atem.connectToSwitcher("10.35.36.5")
 		time.sleep(1)
-		atem.changeProgramInput(cam)
-		time.sleep(1)
-		atem.changePreviewInput(other_cam)
 		first_run = False
-	else:
-		atem.changePreviewInput(other_cam)
-	
+
+	# sigh, cameras are currently swapped in atem
+	if cam == 1: cam = 2
+	elif cam == 2: cam = 1
+
+	atem.changePreviewInput(cam)
+
 	# wait for camera to settle, then ask atem to switch
 	time.sleep(6)
 	
 	# pull trigger
 	atem.doAuto()
 
+	# wait for atem to finish
+	time.sleep(2)
 
 stale = 0
 scores = {}
@@ -594,63 +607,72 @@ def camera_score():
 	scores = res
 
 
-cur = None
+cur_cam = -1
+cur_preset = None
 
 def camera_next(loop=None, user_data=None):
-	global cur_cam, cur, scores
-		
-	next = None
-	pick = random.random()
+	global first_run, cur_cam, cur_preset, scores
 
-	for k, v in scores.iteritems():
-		# always pick at least one preset
-		if next is None:
-			next = k
-		pick -= v
-		# but it's lame to pick same preset twice in row
-		if k == cur:
-			continue
-		if pick <= 0:
-			next = k
-			break
+	# by default, go to logo
+	next_cam = 12
+	next_preset = vLOGO
+	linger = 15
 
-	# camera lingers 10-30 sec
-	# 60 sec => 20 sec
-	top = min(float(len(active_chans))/6,1)
-	top = int(60-(40*top))
-	step = random.randint(10,top)
-
-	# if stream is active, lock to logo
 	if "IMAC" in active_chans:
-		next = None
-		step = 15
-		
-	# if pulpit, we lock to specific camera preset
-	# we want to end up on rear preset, but we might take a detour before landing
-	if "PULPIT" in active_chans:
-		next = vPULPIT
-		step = 15
+		# stream is active; stay on default logo above
+		pass
 
-	if next is None:
-		# nothing active, switch to graphic
-		ui_cam.set_text("LOGO")
-		camera_move(12, None)
-	else:
-		# we have active channels, switch it up!
-		do_switch = True
-		
-		# if we're on rear pulpit, sit tight
-		if next == vPULPIT and cur_cam == 1:
-			do_switch = False
+	elif "PULPIT" in active_chans:
+		# use next physical camera
+		if cur_cam == 1: next_cam = 2
+		else: next_cam = 1
 
-		cur = next
-		if do_switch:
-			cur_cam = (cur_cam + 1) % 2
-			camera_move(cur_cam + 1, cur.preset)
+		# if we're already on best pulpit shot, stay put
+		if cur_preset == vPULPIT and cur_cam == 2: next_cam = 2
 
-		ui_cam.set_text("%d-%s" % (cur_cam, cur))
+		next_preset = vPULPIT
+		linger = 15
+
+	elif len(scores) > 0:
+		# one or more active musicians; let's flow
+
+		# use next physical camera
+		if cur_cam == 1: next_cam = 2
+		else: next_cam = 1
+
+		# randomly pick a preset based on active channels
+		pick = random.random()
+		for k, v in scores.iteritems():
+			# always pick at least one preset
+			if next_preset == vLOGO:
+				next_preset = k
+			pick -= v
+			# but it's lame to pick same preset twice in row
+			if k == cur_preset:
+				continue
+			if pick <= 0:
+				next_preset = k
+				break
+
+		# camera lingers 10-30 sec
+		# 60 sec => 20 sec
+		top = min(float(len(active_chans))/6,1)
+		top = int(60-(40*top))
+		linger = random.randint(10,top)
+
+	# we've picked destination above; let's go!
+	if cur_cam == next_cam and cur_preset == next_preset:
+		pass
 	
-	return step
+	else:
+		ui_cam.set_text("%d-%s" % (next_cam, next_preset))
+		
+		camera_move(next_cam, next_preset)
+
+		cur_cam = next_cam
+		cur_preset = next_preset
+
+	return linger
 
 
 class CamThread(threading.Thread):
@@ -682,7 +704,7 @@ cam.start()
 
 if True:
 	def refresh(loop=None, user_data=None):
-		loop.set_alarm_in(0.05, refresh)
+		loop.set_alarm_in(0.2, refresh)
 
 	refresh(loop, None)
 	loop.run()
