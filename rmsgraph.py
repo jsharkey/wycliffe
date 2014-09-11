@@ -144,7 +144,7 @@ ui_log = urwid.Text(('label', u"[log]"), align='left')
 
 
 wrapped_ui_cam = urwid.Padding(ui_cam, width='clip')
-rows.append(urwid.Columns([ui_summary, ('weight', 0.3, wrapped_ui_cam)], dividechars=1))
+rows.append(urwid.Columns([ui_summary, ('weight', 0.4, wrapped_ui_cam)], dividechars=1))
 
 
 class VisualChannel():
@@ -321,24 +321,26 @@ ACTIVE_THRESH = {
 	#'TOM1': 0.2, 'TOM2': 0.2,
 	'SNARETOP': 0.4, 'SNAREBOT': 0.4,
 
-	'AGT1': 0.24, 'AGT2': 0.24,
+	'AGT1': 0.32, 'AGT2': 0.32,
 	'EGT1': 0.28, 'EGT2': 0.28,
 	'BASS': 0.24,
 	'KEYL': 0.24, 'KEYR': 0.24,
 	'MIDIL': 0.24, 'MIDIR': 0.24,
 
-	'BGV1': 0.05,
-	'BGV2': 0.05,
-	'BGV3': 0.05,
-	'PLVOC': 0.05,
-	'WLVOX1': 0.05,
-	'WLVOX2': 0.05,
-	'KEYVOX': 0.05,
-	'MIDIVOX': 0.05,
+	'BGV1': 0.09,
+	'BGV2': 0.09,
+	'BGV3': 0.09,
+	'PLVOC': 0.09,
+	'WLVOX1': 0.09,
+	'WLVOX2': 0.09,
+	'KEYVOX': 0.09,
+	'MIDIVOX': 0.09,
 
-	'IMAC': 0.4,
-	'PULPIT': 0.4,
+	'IMAC': 0.1,
+	'PULPIT': 0.1,
 }
+
+SLOW_DECAY = ["IMAC", "PULPIT"]
 
 # mic-based channels that need filtering
 # will be normalized against first channel
@@ -409,13 +411,14 @@ class RmsThread(threading.Thread):
 					#	f.write("==\n")
 					
 					rms = struct.unpack("!128B", p.data[14+3:])
-					#rms = [254-val for val in rms]
-					rms = [rms_scale(254-val) for val in rms]
+					rms = [254-val for val in rms]
 					
 					if sum(rms) == 0:
 						dead_count += 1
 					else:
 						dead_count = 0
+
+					rms = [rms_scale(val) for val in rms]
 					
 					# TODO: remove testing data
 					#rms = [random.randint(0,254) for val in rms]
@@ -458,40 +461,41 @@ class RmsThread(threading.Thread):
 					res[ch_index] *= 4
 				
 				for i in range(len(res)):
-					ch = i
-					if ch in channels:
-						val = res[i]
-						ui = channel_ui[i]
+					if i not in channels: continue
 
-						if math.isnan(val): continue
-						
-						# jump quickly, but decay slowly
-						if val > res_decay[i]:
-							res_decay[i] = (res_decay[i] * 0.1) + (val * 0.9)
-						else:
-							res_decay[i] = (res_decay[i] * 0.9) + (val * 0.1)
-						
-						val = res_decay[i]
+					label = channels[i]
+					val = res[i]
+					ui = channel_ui[i]
 
-						ui.raw.set_completion(rms[i])
-						ui.level.set_completion(val)
-						label = channels[i]
+					if math.isnan(val): continue
+					
+					# jump quickly, but decay slowly
+					if val > res_decay[i]:
+						res_decay[i] = (res_decay[i] * 0.1) + (val * 0.9)
+					else:
+						rate = 0.95 if label in SLOW_DECAY else 0.9
+						res_decay[i] = (res_decay[i] * rate) + (val * (1-rate))
+					
+					val = res_decay[i]
+
+					ui.raw.set_completion(rms[i])
+					ui.level.set_completion(val)
+					
+					active = False
+					if label in ACTIVE_THRESH:
+						active = (float(val) / 255 > ACTIVE_THRESH[label])
 						
-						active = False
-						if label in ACTIVE_THRESH:
-							active = (float(val) / 255 > ACTIVE_THRESH[label])
-							
-						if active:
-							ui.level.complete = 'active'
-							if label not in active_chans and label in PREEMPT:
-								# important channel coming alive; wake up camera!
-								force_next.set()
-							
-							active_chans.add(label)
-						else:
-							ui.level.complete = 'inactive'
-							if label in active_chans:
-								active_chans.remove(label)
+					if active:
+						ui.level.complete = 'active'
+						if label not in active_chans and label in PREEMPT:
+							# important channel coming alive; wake up camera!
+							force_next.set()
+						
+						active_chans.add(label)
+					else:
+						ui.level.complete = 'inactive'
+						if label in active_chans:
+							active_chans.remove(label)
 								
 				camera_score()
 
@@ -614,7 +618,7 @@ def camera_next(loop=None, user_data=None):
 	global first_run, cur_cam, cur_preset, scores
 
 	# by default, go to logo
-	next_cam = 12
+	next_cam = 3010
 	next_preset = vLOGO
 	linger = 15
 
@@ -654,18 +658,21 @@ def camera_next(loop=None, user_data=None):
 				next_preset = k
 				break
 
-		# camera lingers 10-30 sec
-		# 60 sec => 20 sec
-		top = min(float(len(active_chans))/6,1)
-		top = int(60-(40*top))
-		linger = random.randint(10,top)
+		# shortest linger is always 10sec
+		# longest linger is anywhere from 20-90sec
+		active_pct = min(float(len(active_chans))/8,1)
+		longest = int(90*(1-active_pct))
+		linger = random.randint(10,max(20,longest))
 
 	# we've picked destination above; let's go!
 	if cur_cam == next_cam and cur_preset == next_preset:
 		pass
 	
 	else:
-		ui_cam.set_text("%d-%s" % (next_cam, next_preset))
+		if next_cam <= 8:
+			ui_cam.set_text("%d-%s" % (next_cam, next_preset))
+		else:
+			ui_cam.set_text("%s" % (next_preset))
 		
 		camera_move(next_cam, next_preset)
 
