@@ -23,6 +23,26 @@ import random, collections, operator
 
 import serial
 
+import sys, struct, re, threading, time
+import socket
+import urwid
+import collections
+import binascii
+import urllib2
+import numpy
+import dbus
+import telnetlib
+import paramiko
+import errno
+import math
+
+# apt-get install python-numpy python-serial
+# apt-get install libqt4-dev
+# apt-get install python-dbus
+# apt-get install python-paramiko
+# apt-get install python-dev python-pip
+# pip install urwid
+
 
 class Channel():
 	def __init__(self, title, w, matches):
@@ -42,21 +62,8 @@ class Shot():
 	def __repr__(self):
 		return self.title
 
-"""
-vKEYS = Shot(1, "vKEYS")
-vDRUMS = Shot(2, "vDRUMS")
-vWL = Shot(3, "vWL")
-vPL = Shot(4, "vPL")
-vMIDI = Shot(5, "vMIDI")
-vBG = Shot(6, "vBG")
-vC = Shot(7, "vC")
-vCL = Shot(8, "vCL")
-vCR = Shot(9, "vCR")
-vL = Shot(10, "vL")
-vR = Shot(11, "vR")
-vFULL = Shot(12, "vFULL")
-"""
 
+# camera presets
 vKEYS = Shot(1, "vKEYS")
 vDRUMS = Shot(2, "vDRUMS")
 vWL = Shot(3, "vWL")
@@ -69,101 +76,122 @@ vFULL = Shot(9, "vFULL")
 vC = Shot(10, "vC")
 vCR = Shot(11, "vCR")
 vCL = Shot(12, "vCL")
+vPULPIT = Shot(13, "vPULPIT")
+vLOGO = Shot(-1, "vLOGO")
 
-
-aPLVOX = Channel("aPLVOX", 1.2, "PLVOX,PLVOC")
+# audio clusters
+aPLVOX = Channel("aPLVOX", 1.6, "PLVOX,PLVOC")
 aWLVOX = Channel("aWLVOX", 0.8, "WLVOX1,WLVOX2")
 aBGV = Channel("aBGV", 0.8, "BGV1,BGV2,BGV3")
-aKEYVOX = Channel("aKEYVOX", 0.6, "KEYVOX")
-aMIDIVOX = Channel("aMIDIVOX", 0.6, "MIDIVOX")
-aWLINST = Channel("aWLINST", 0.5, "EGT1,AGT1")
+aKEYVOX = Channel("aKEYVOX", 0.5, "KEYVOX")
+aMIDIVOX = Channel("aMIDIVOX", 0.5, "MIDIVOX")
+aWLINST = Channel("aWLINST", 0.5, "EGT1,EGT2,AGT1,AGT2")
 aKEY = Channel("aKEY", 0.5, "KEYL,KEYR,KEY")
 aMIDI = Channel("aMIDI", 0.5, "MIDIL,MIDIR,MIDI")
-aDRUMS = Channel("aDRUMS", 0.5, "DRUMS,KICK,SNARE,OHL,OHR")
+aDRUMS = Channel("aDRUMS", 0.4, "DRUMS,KICK,SNAREBOT,SNARETOP,OHL,OHR")
 aBASS = Channel("aBASS", 0.5, "BASS")
 
 AUDIO = [aPLVOX,aWLVOX,aBGV,aKEYVOX,aMIDIVOX,aWLINST,aKEY,aMIDI,aDRUMS,aBASS]
 
+# mapping from audio cluster to list of camera presets covering them
 CONFIG = {
 	aPLVOX: [vPL,vR,vCR],
-	aWLVOX: [vWL,vC,vCR,vCL,vFULL],
-	aBGV: [vBG,vR,vCR,vFULL],
-	aKEYVOX: [vKEYS,vL,vCL,vFULL],
-	aMIDIVOX: [vMIDI,vCR,vFULL],
+	aWLVOX: [vWL,vC,vCR,vCL,],
+	aBGV: [vBG,vR,vCR,],
+	aKEYVOX: [vKEYS,vL,vCL,],
+	aMIDIVOX: [vMIDI,vCR,],
 
-	aWLINST: [vWL,vC,vCR,vCL,vFULL],
-	aKEY: [vKEYS,vL,vCL,vFULL],
-	aMIDI: [vMIDI,vCR,vFULL],
-	aDRUMS: [vDRUMS,vCL,vFULL],
-	aBASS: [vL,vCL,vFULL],
+	aWLINST: [vWL,vC,vCR,vCL,],
+	aKEY: [vKEYS,vL,vCL,],
+	aMIDI: [vMIDI,vCR,],
+	aDRUMS: [vDRUMS,vCL,],
+	aBASS: [vL,vCL,],
 }
 
 for c, v in CONFIG.iteritems():
 	while None in v:
 		v.remove(None)
 
+test_high = {
+	"IMAC": False,
+	"PULPIT": False,
+}
 
+def handle_input(key):
+	global test_high
 
-# apt-get install python-dev python-pip
-# pip install urwid
-
-import sys, struct, re, threading, time
-import socket
-from socket import *
-import urwid
-
-def exit_on_q(key):
-    if key in ('q', 'Q'):
-        raise urwid.ExitMainLoop()
+	if key in ('q', 'Q'):
+		raise urwid.ExitMainLoop()
+	elif key == 'I': test_high["IMAC"] = True
+	elif key == 'i': test_high["IMAC"] = False
+	elif key == 'P': test_high["PULPIT"] = True
+	elif key == 'p': test_high["PULPIT"] = False
 
 palette = [
     ('banner', 'black', 'light gray'),
     ('streak', 'black', 'dark red'),
+    ('raw', 'black', 'dark green'),
     ('inactive', 'black', 'dark blue'),
-	('active', 'black', 'dark red'),
-    ]
-
+    ('active', 'black', 'dark red'),
+]
 
 rows = []
 channel_ui = []
 
 ui_summary = urwid.Text(('label', u"[camera summary]"), align='left')
 ui_cam = urwid.BigText('[]', urwid.font.HalfBlock5x4Font())
+ui_log = urwid.Text(('label', u"[log]"), align='left')
 
-#rows.append(ui_summary)
-#rows.append()
 
 wrapped_ui_cam = urwid.Padding(ui_cam, width='clip')
-rows.append(urwid.Columns([ui_summary, ('weight', 0.3, wrapped_ui_cam)], dividechars=1))
+rows.append(urwid.Columns([ui_summary, ('weight', 0.4, wrapped_ui_cam)], dividechars=1))
 
 
 class VisualChannel():
 	def __init__(self, i):
 		self.label = urwid.Text(('label', u"CH%d" % (i)), align='right')
+		self.raw = urwid.ProgressBar('', 'raw', 0, 255)
 		self.level = urwid.ProgressBar('', 'inactive', 0, 255)
 		#self.level_color = urwid.AttrMap(self.level, 'active')
-		self.row = urwid.Columns([('weight', 0.2, self.label), self.level], dividechars=1)
+		self.row = urwid.Columns([	('weight', 0.1, self.label),
+									('weight', 0.5, self.raw),
+									('weight', 0.1, self.label),
+									('weight', 0.5, self.level)], dividechars=1)
 
 for i in range(1,128):
 	ch = VisualChannel(i)
 	channel_ui.append(ch)
-	rows.append(ch.row)
+	if 0 < i <= 8 or 16 < i <= 24 or 32 < i <= 40 or 48 < i <= 56:
+		rows.append(ch.row)
+
+rows.append(ui_log)
 
 page = urwid.ListBox(urwid.SimpleFocusListWalker(rows))
+loop = urwid.MainLoop(page, palette, unhandled_input=handle_input)
 
 
-# spwan thread to watch for updates
+LOG_SIZE = 16
+log_buffer = collections.deque(maxlen=LOG_SIZE)
 
-#exit(0)
+def log(msg):
+	global log_buffer
+	log_buffer.append("[%s] %s" % (time.strftime("%I:%M:%S %p", time.localtime()), msg))
+	ui_log.set_text("\n".join(log_buffer))
 
-DANTE = "10.35.37.22"
+for i in range(0,LOG_SIZE):
+	log('.')
+
+
+force_next = threading.Event()
+
+DANTE = "10.35.0.2"
 CTL_PORT = 8800
 INFO_PORT = 4440
 RMS_PORT = 8751
 
 LOCAL_IDENT = "001c25bf39850000"
 #LOCAL_IDENT = "CAFECAFECAFE0000"
-LOCAL_IP = "10.35.20.20"
+LOCAL_IP = "10.35.0.6"
 
 class InfoPacket():
 	# t3=0000 send
@@ -208,20 +236,23 @@ class InfoPacket():
 
 
 # parse tx channel details
-data = "271201bf000920100001201e00010001010c00020002011100030003011a00040004012300050005012700060006012b00070007013000080008013500090011013c000a00120141000b00130146000c0014014d000d00150152000e00160159000f0017015e00100018016300110021016800120022016e00130023017400140024017a00150025018400160026018c00170027019100180028019800190031019d001a003201a2001b003301a7001c003401ae001d003701b5001e003801ba003a000e016801ab014f01ae0000000100000000003b000e016801b1014f01b40000000100000000003c000e016801b7014f01ba0000000100000000003d000e016801bd014f01c0000000014b49434b00534e415245544f5000534e41524542544d004f484c004f485200544f4d3100544f4d320044434c49434b0041475431004547543100574c564f5831004147543200574c564f583200424756310042475632004247563300504c564f43004d4944494c004d49444952004d494449434c49434b004d494449564f580042415353004b4559564f58004b45594c004b4559520045475432004d494449324c004d494449325200464f484c00464f485200".decode("hex")
+#data = "271201bf000920100001201e00010001010c00020002011100030003011a00040004012300050005012700060006012b00070007013000080008013500090011013c000a00120141000b00130146000c0014014d000d00150152000e00160159000f0017015e00100018016300110021016800120022016e00130023017400140024017a00150025018400160026018c00170027019100180028019800190031019d001a003201a2001b003301a7001c003401ae001d003701b5001e003801ba003a000e016801ab014f01ae0000000100000000003b000e016801b1014f01b40000000100000000003c000e016801b7014f01ba0000000100000000003d000e016801bd014f01c0000000014b49434b00534e415245544f5000534e41524542544d004f484c004f485200544f4d3100544f4d320044434c49434b0041475431004547543100574c564f5831004147543200574c564f583200424756310042475632004247563300504c564f43004d4944494c004d49444952004d494449434c49434b004d494449564f580042415353004b4559564f58004b45594c004b4559520045475432004d494449324c004d494449325200464f484c00464f485200".decode("hex")
+data = "271201cb000920100001202000010001010c00020002011100030003011a00040004012300050005012700060006012b00070007013000080008013500090011013c000a00120141000b00130146000c0014014d000d00150152000e00160159000f0017015e00100018016300110021016800120022016e00130023017400140024017a00150025018400160026018c00170027019100180028019800190031019d001a003201a2001b003301a7001c003401ae001d003701b5001e003801ba001f003601bf0020003501c60000000100000000003b000e016801b1014f01b40000000100000000003c000e016801b7014f01ba0000000100000000003d000e016801bd014f01c0000000014b49434b00534e415245544f5000534e41524542544d004f484c004f485200544f4d3100544f4d320044434c49434b0041475431004547543100574c564f5831004147543200574c564f583200424756310042475632004247563300504c564f43004d4944494c004d49444952004d494449434c49434b004d494449564f580042415353004b4559564f58004b45594c004b4559520045475432004d494449324c004d494449325200464f484c00464f48520050554c50495400494d414300".decode("hex")
 
 p = InfoPacket.incoming(data)
 total, ret = struct.unpack("!BB", p.data[0:2])
 channels = {}
+channels_rev = {}
 
 for n in range(ret):
 	ptr = 2+(n*6)
 	n, target, label_ptr = struct.unpack("!3H", p.data[ptr:ptr+6])
 	label_ptr -= 10
 	label = p.data[label_ptr:p.data.index("\0", label_ptr)]
+	target -= 1
 	channels[target] = label
-	channel_ui[target-1].label.set_text(label)
-	#print target, label
+	channels_rev[label] = target
+	channel_ui[target].label.set_text(label)
 
 
 
@@ -230,59 +261,107 @@ for n in range(ret):
 rms_data = "ffff009b3ca00000001dc10412e20000417564696e617465024040bfc9c4b8bcbcb8a9bfc9c4b8bcbcb8a9a7a88bac88afb1afa7a88bac88afb1afb0cccbcdb29ca6c0b0cccbcdb29ca6c0c4b1cccafefee3e2c4b1cccafefee3e2fefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe".decode("hex")
 
 
-csock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
+csock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 csock.bind(('', CTL_PORT))
 
-rsock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
+rsock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 rsock.bind(('', RMS_PORT))
+#rsock.setsockopt(SOL_SOCKET, SO_RCVBUF, 1)
+#rsock.setsockopt(SOL_SOCKET, SO_TIMESTAMP, 1)
 
 
-# request rms stream
-p = InfoPacket.outgoing(0x1200, 0xeeee, 0x3010, 0x0000)
-p.append_hex("0000")
-p.append_hex(LOCAL_IDENT)
-p.append_hex("0004 0018 0001 0022 000a")
-p.append_raw("DN965x-0412e2\0admii-PC\0")
-p.append_hex("00 0001 0026 0001")
-p.append_raw(struct.pack("!H", RMS_PORT))
-p.append_hex("0001 0000")
-p.append_raw(inet_pton(AF_INET, LOCAL_IP))
-p.append_raw(struct.pack("!H", RMS_PORT))
-p.append_hex("0000")
+def init_rms():
+	global csock
+	
+	log("init_rms()")
+	
+	# request rms stream
+	p = InfoPacket.outgoing(0x1200, 0xeeee, 0x3010, 0x0000)
+	p.append_hex("0000")
+	p.append_hex(LOCAL_IDENT)
+	p.append_hex("0004 0018 0001 0022 000a")
+	p.append_raw("DN965x-0412e2\0admii-PC\0")
+	p.append_hex("00 0001 0026 0001")
+	p.append_raw(struct.pack("!H", RMS_PORT))
+	p.append_hex("0001 0000")
+	p.append_raw(socket.inet_pton(socket.AF_INET, LOCAL_IP))
+	p.append_raw(struct.pack("!H", RMS_PORT))
+	p.append_hex("0000")
 
-csock.sendto(p.pack(), (DANTE, CTL_PORT))
+	csock.sendto(p.pack(), (DANTE, CTL_PORT))
 
 
-import collections
+MFI_PASS = open("../mfi.pwd").read().strip()
 
-recent = collections.defaultdict(lambda: float(128))
+def kick_dante():
+	# first poke our heads around to inspect
+	
+	ssh = paramiko.SSHClient()
+	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+	ssh.connect('10.35.0.7', username='admin', password=MFI_PASS, timeout=20)
+	
+	stdin, stdout, stderr = ssh.exec_command("cat /proc/power/active_pwr1")
+	pwr = float(stdout.read().strip())
+	log("kick_dante() found active_pwr1 at %f" % pwr)
+	
+	if pwr < 1 or pwr > 14:
+		log("kick_dante() cycling power!")
+		ssh.exec_command("echo 0 > /proc/power/relay1")
+		time.sleep(1)
+		ssh.exec_command("echo 1 > /proc/power/relay1")
+		time.sleep(60)
+	
+	ssh.close()
+
+
 
 ACTIVE_THRESH = {
-	'KICK': 0.6,
-	'OHR': 0.6, 'OHL': 0.6,
-	'TOM1': 0.6, 'TOM2': 0.6,
-	'SNARETOP': 0.7, 'SNAREBOT': 0.7,
+	'KICK': 0.4,
+	'OHR': 0.4, 'OHL': 0.4,
+	#'TOM1': 0.2, 'TOM2': 0.2,
+	'SNARETOP': 0.4, 'SNAREBOT': 0.4,
 
-	'AGT1': 0.5, 'AGT2': 0.5,
-	'EGT1': 0.5,
-	'BASS': 0.6,
-	'KEYL': 0.5, 'KEYR': 0.5,
-	'MIDIL': 0.5, 'MIDIR': 0.5,
+	'AGT1': 0.32, 'AGT2': 0.32,
+	'EGT1': 0.28, 'EGT2': 0.28,
+	'BASS': 0.24,
+	'KEYL': 0.24, 'KEYR': 0.24,
+	'MIDIL': 0.24, 'MIDIR': 0.24,
 
-	'BGV1': 0.65,
-	'BGV2': 0.65,
-	'BGV3': 0.65,
-	
-	'PLVOC': 0.8,
-	'WLVOX1': 0.7,
-	'WLVOX2': 0.7,
-	'KEYVOX': 0.7,
-	'MIDIVOX': 0.7,
+	'BGV1': 0.09,
+	'BGV2': 0.09,
+	'BGV3': 0.09,
+	'PLVOC': 0.09,
+	'WLVOX1': 0.09,
+	'WLVOX2': 0.09,
+	'KEYVOX': 0.09,
+	'MIDIVOX': 0.09,
+
+	'IMAC': 0.1,
+	'PULPIT': 0.1,
 }
 
+SLOW_DECAY = ["IMAC", "PULPIT"]
+
+# mic-based channels that need filtering
+# will be normalized against first channel
+FILTER_CHANS = ["FOHL",
+	"BGV1","BGV2","BGV3","PLVOC","WLVOX1","WLVOX2","KEYVOX","MIDIVOX",
+	#"KICK","SNARETOP","SNAREBTM","OHL","OHR",#"PULPIT"
+	#"AGT1","AGT2","EGT1","EGT2","BASS",
+	#"MIDIL","MIDIR","KEYL","KEYR","MIDI2L","MIDI2R",
+]
+PREEMPT = ["PLVOC","PULPIT","IMAC"]
+NORM_CHANS = FILTER_CHANS[1:]
+FILTER_HISTORY = 100
+
+last_rms = None
+last_init = None
+rms_history = collections.deque(maxlen=FILTER_HISTORY)
+res_decay = collections.defaultdict(lambda: 0)
 active_chans = set()
 
-import binascii
+def rms_scale(x):
+	return  7.6381909547737905e+000 * pow(x,0) + -1.6518868854074009e-001 * pow(x,1)        +  4.4078524108431324e-003 * pow(x,2)
 
 class RmsThread(threading.Thread):
 	def __init__(self):
@@ -290,184 +369,203 @@ class RmsThread(threading.Thread):
 		self.daemon = True
 		
 	def run(self):
+		global last_rms, last_init, rms_history, active_chans, force_next, test_high
+		
+		dead_count = 0
+		
 		while True:
-			data, addr = rsock.recvfrom(1024)
-			p = InfoPacket.incoming(data)
-			
-			#p = InfoPacket.incoming(rms_data)
-			#time.sleep(1)
+			try:
+				# periodically re-init to avoid lag
+				if last_init is None or time.time() - last_init > 30:
+					init_rms()
+					last_init = time.time()
+				
+				if dead_count > 60*10:
+					log("RMS appears dead for %d samples; kicking" % dead_count)
+					dead_count = 0
+					kick_dante()
+				
+				# read everything pending
+				collected = 0
+				start = time.time()
+				while time.time() - start < 1.0:
+					rsock.setblocking(0)
+					try:
+						data, addr = rsock.recvfrom(1024)
+					except socket.error as e:
+						if e.errno == errno.EWOULDBLOCK:
+							time.sleep(0.1)
+							continue
+						else:
+							raise
+						
+					p = InfoPacket.incoming(data)
+					collected += 1
+					
+					#p = InfoPacket.incoming(rms_data)
+					#time.sleep(1)
 
-			with open("dump.raw", "a") as f:
-				f.write("==")
-				f.write(p.data)
-				f.write("==\n")
-			
-			rms = struct.unpack("!128B", p.data[14+3:])
-
-			for i in range(len(rms)):
-				ch = i+1
-				if ch in channels:
-					#print ch, channels[ch], rms[i]
-					val = 255-rms[i]
-					if val > recent[i]:
-						recent[i] = (recent[i] * 0.8) + (val * 0.2)
+					#with open("dump.raw", "a") as f:
+					#	f.write("==")
+					#	f.write(p.data)
+					#	f.write("==\n")
+					
+					rms = struct.unpack("!128B", p.data[14+3:])
+					rms = [254-val for val in rms]
+					
+					if sum(rms) == 0:
+						dead_count += 1
 					else:
-						recent[i] = (recent[i] * 0.99) + (val * 0.01)
+						dead_count = 0
 
+					rms = [rms_scale(val) for val in rms]
+					
+					# TODO: remove testing data
+					#rms = [random.randint(0,254) for val in rms]
+					#for ch, v in test_high.iteritems():
+					#	rms[channels_rev[ch]] = 200 if v else 0
+					
+					if last_rms is None:
+						last_rms = rms
+						continue
+					
+					# filter transient spikes/drops
+					# they happen frequently enough, and mess with stddev
+					#for i in range(64):
+					#	if rms[i] < (last_rms[i] - 60):
+					#		rms[i] = last_rms[i]
+					
+					# accumulate rms history
+					rms_history.append(rms)
+				
+				if collected != 10:
+					pass
+					#log("Collected %d samples, total history %d" % (collected, len(rms_history)))
+				if collected == 0:
+					dead_count += 10
+					continue
+				
+				# calculate stddev for each filter channel
+				# other channels just passthrough from copy
+				res = rms[:]
+				for ch_label in FILTER_CHANS:
+					ch_index = channels_rev[ch_label]
+					recent = [ rec[ch_index] for rec in rms_history ]
+					res[ch_index] = numpy.std(recent)
+					
+				# and normalize against first channel
+				key_index = channels_rev[FILTER_CHANS[0]]
+				for ch_label in NORM_CHANS:
+					ch_index = channels_rev[ch_label]
+					res[ch_index] -= res[key_index]
+					res[ch_index] *= 4
+				
+				for i in range(len(res)):
+					if i not in channels: continue
+
+					label = channels[i]
+					val = res[i]
 					ui = channel_ui[i]
 
-					#recent[i] = random.randint(0,254)
-					ui.level.set_completion(recent[i])
-					title = channels[i+1]
+					if math.isnan(val): continue
+					
+					# jump quickly, but decay slowly
+					if val > res_decay[i]:
+						res_decay[i] = (res_decay[i] * 0.1) + (val * 0.9)
+					else:
+						rate = 0.95 if label in SLOW_DECAY else 0.9
+						res_decay[i] = (res_decay[i] * rate) + (val * (1-rate))
+					
+					val = res_decay[i]
 
+					ui.raw.set_completion(rms[i])
+					ui.level.set_completion(val)
+					
 					active = False
-					if title in ACTIVE_THRESH:
-						active = (float(recent[i]) / 255 > ACTIVE_THRESH[title])
+					if label in ACTIVE_THRESH:
+						active = (float(val) / 255 > ACTIVE_THRESH[label])
 						
-					active = True
 					if active:
 						ui.level.complete = 'active'
-						active_chans.add(title)
+						if label not in active_chans and label in PREEMPT:
+							# important channel coming alive; wake up camera!
+							force_next.set()
+						
+						active_chans.add(label)
 					else:
 						ui.level.complete = 'inactive'
-						if title in active_chans:
-							active_chans.remove(title)
-							
-			camera_score()
+						if label in active_chans:
+							active_chans.remove(label)
+								
+				camera_score()
 
-
-cur = None
-cur_cam = 1
-
-import urllib2
-
-
-
-ATEM_HOST = '10.35.36.5'
-ATEM_PORT = 9910
-
-def rand(max):
-	return int(random.uniform(0,max))
-
-class AtemThread(threading.Thread):
-	def __init__(self):
-		threading.Thread.__init__(self)
-		self.daemon = True
-				
-	def send_hello(self):
-		uid   = (((rand(254) + 1) << 8) + rand(254) + 1) & 0x7FFF
-		data  = struct.pack("!HHHH", 0x0100, 0x0000, 0x0000, 0x0000)
-		hello = struct.pack("!BBHHHHH", 0x10, 0x14, uid, 0, 0, 0x0000, 0) + data
-		self.sock.send(hello)
-		return uid
-		
-	def send_pkt(self, cmd, cout, un1, un2, cin, payload):
-		ln = 12 + len(payload)
-		cmd += ((ln >> 8) & 0x07)
-		pkt = struct.pack("!BBHHHHH", cmd, ln, self.uid, cout, un1, un2, cin) + payload
-		#if not ln==12:
-		#    print "Send:", hexlify(pkt)
-		#    print_pkt(cmd, ln, uid, cout, un1, un2, cin, payload)
-		self.sock.send(pkt)
-
-	def recv_pkt(self, data):
-		pkt = data
-		cmd, len, uid, cnt_out, unkn1, unkn2, cnt_in = struct.unpack("!BBHHHHH", data[0:12])
-		payload = data[12:]
-		#(port, ipaddr) = sockaddr_in($sock->peername)
-		len = ((cmd & 0x07) << 8) + len
-		cmd = cmd & 0xF8
-		return (cmd, len, uid, cnt_out, unkn1, unkn2, cnt_in, payload)
-
-	def run(self):
-		self.sock = socket(AF_INET, SOCK_DGRAM)
-		self.sock.connect((ATEM_HOST, ATEM_PORT))
-		self.sock.setblocking(False)
-
-		self.uid = self.send_hello()
-		self.cnt_in = 0
-		self.mycnt = 0
-
-		hello_finished = False
-		
-		self.outgoing = []
-	
-		while True:
-			if len(self.outgoing) > 0:
-				time.sleep(0.5)
-				atem.send_pkt(0x88, atem.cnt_in, 0, 0, atem.mycnt, self.outgoing.pop(0))
-
-			try:
-				data = self.sock.recv(1024*10)
 			except:
-				time.sleep(0.02)
-				continue
-
-			args = self.recv_pkt(data)
-			cmd, ln, self.uid, cnt_out, unkn1, unkn2, self.cnt_in, payload = args
-			if cmd & 0x10:
-				self.send_pkt(0x80, 0, 0, 0x0050, 0, '')
-				continue
-			elif cmd & 0x08:
-				if self.cnt_in == 0x04 and not hello_finished:
-					hello_finished = True
-					self.mycnt+=1
-					print "Hellofinish"
-				if hello_finished:
-					self.send_pkt(0x80, self.cnt_in, 0, 0, 0, '')
-					self.send_pkt(0x08, 0, 0, 0, self.mycnt, '')
-					self.mycnt+=1
-
-			if (self.mycnt == 0 and hello_finished):
-				cmd = 0x80
-				
-
-
-
-atem = AtemThread()
-atem.start()
-
-
+				log("RmsThread error: %s" % str(sys.exc_info()))
 
 
 
 first_run = True
 
+
+bus = dbus.SessionBus()
+
+atem = bus.get_object('com.blackmagicdesign.QAtemConnection', '/QAtemConnection')
+atem = dbus.Interface(atem, dbus_interface='com.blackmagicdesign.QAtemConnection')
+
+ENABLE_SERIAL = False
+ENABLE_TELNET = True
+
 def camera_move(cam, preset):
-	global first_run
-	#return
-
-	ser = serial.Serial('/dev/ttyUSB0')
-	ser.write("\r\n")
-	ser.readline()
+	global first_run, atem
 	
-	ser.write("InCtlA %d\r\n" % (cam))
-	ser.flush()
-	ser.readline()
-
-	ser.write("Preset %d\r\n" % (preset))
-	ser.flush()
-	ser.readline()
+	log("camera_move() input %s, preset %s" % (str(cam), str(preset)))
 	
-	ser.close()
+	if ENABLE_SERIAL and preset != vLOGO:
+		ser = serial.Serial('/dev/ttyUSB0')
+		ser.write("\r\n")
+		ser.readline()
+		
+		ser.write("InCtlA %d\r\n" % (cam))
+		ser.flush()
+		ser.readline()
+
+		ser.write("Preset %d\r\n" % (preset.preset))
+		ser.flush()
+		ser.readline()
+		
+		ser.close()
 	
+	if ENABLE_TELNET and preset != vLOGO:
+		tel = telnetlib.Telnet()
+		tel.open('10.35.0.3', 10001)
+		tel.write("\r\n")
+		tel.read_until(">")
+		tel.write("InCtlA %d\r\n" % (cam))
+		tel.read_until(">")
+		tel.write("Preset %d\r\n" % (preset.preset))
+		tel.read_until(">")
+		tel.close()
 
-	if cam == 1: other_cam = 2
-	else: other_cam = 1
+	if first_run:
+		atem.disconnectFromSwitcher()
+		atem.connectToSwitcher("10.35.36.5")
+		time.sleep(1)
+		first_run = False
 
-	#if first_run:
-	#	atem.outgoing.append(struct.pack("!HHHHHH", 0x000c, 0x0000, 0x4350, 0x7649, 0x0000, other_cam))
-	#	atem.outgoing.append(struct.pack("!HHHHHH", 0x000c, 0x0000, 0x4350, 0x6749, 0x0000, cam))
+	# sigh, cameras are currently swapped in atem
+	if cam == 1: cam = 2
+	elif cam == 2: cam = 1
 
-	# wait 5 seconds to settle, then ask atem to switch
+	atem.changePreviewInput(cam)
+
+	# wait for camera to settle, then ask atem to switch
 	time.sleep(6)
-
+	
 	# pull trigger
-	#atem.cnt_in = 0
-	#atem.mycnt = 0
-	atem.outgoing.append(struct.pack("!HHHHHH", 0x000c, 0x0000, 0x4441, 0x7574, 0x00cf, 0xb900))
-	
-	
+	atem.doAuto()
+
+	# wait for atem to finish
+	time.sleep(2)
 
 stale = 0
 scores = {}
@@ -475,10 +573,6 @@ scores = {}
 def camera_score():
 	global scores, stale
 
-	stale += 1
-	if stale < 1: return
-	else: stale = 0
-	
 	# okay, time to transition! what's active?
 	msg = "active chans %s\n" % (active_chans)
 
@@ -517,39 +611,75 @@ def camera_score():
 	scores = res
 
 
-cur = None
+cur_cam = -1
+cur_preset = None
 
-def camera_loop():
-	global cur_cam, cur, scores
+def camera_next(loop=None, user_data=None):
+	global first_run, cur_cam, cur_preset, scores
+
+	# by default, go to logo
+	next_cam = 3010
+	next_preset = vLOGO
+	linger = 15
+
+	if "IMAC" in active_chans:
+		# stream is active; stay on default logo above
+		pass
+
+	elif "PULPIT" in active_chans:
+		# use next physical camera
+		if cur_cam == 1: next_cam = 2
+		else: next_cam = 1
+
+		# if we're already on best pulpit shot, stay put
+		if cur_preset == vPULPIT and cur_cam == 2: next_cam = 2
+
+		next_preset = vPULPIT
+		linger = 15
+
+	elif len(scores) > 0:
+		# one or more active musicians; let's flow
+
+		# use next physical camera
+		if cur_cam == 1: next_cam = 2
+		else: next_cam = 1
+
+		# randomly pick a preset based on active channels
+		pick = random.random()
+		for k, v in scores.iteritems():
+			# always pick at least one preset
+			if next_preset == vLOGO:
+				next_preset = k
+			pick -= v
+			# but it's lame to pick same preset twice in row
+			if k == cur_preset:
+				continue
+			if pick <= 0:
+				next_preset = k
+				break
+
+		# shortest linger is always 10sec
+		# longest linger is anywhere from 20-90sec
+		active_pct = min(float(len(active_chans))/8,1)
+		longest = int(90*(1-active_pct))
+		linger = random.randint(10,max(20,longest))
+
+	# we've picked destination above; let's go!
+	if cur_cam == next_cam and cur_preset == next_preset:
+		pass
+	
+	else:
+		if next_cam <= 8:
+			ui_cam.set_text("%d-%s" % (next_cam, next_preset))
+		else:
+			ui_cam.set_text("%s" % (next_preset))
 		
-	next = None
-	pick = random.random()
+		camera_move(next_cam, next_preset)
 
-	#ui_cam.set_text("%d" % (len(scores)))
+		cur_cam = next_cam
+		cur_preset = next_preset
 
-	for k, v in scores.iteritems():
-		pick -= v
-		if pick <= 0:
-			next = k
-			break
-
-	if next is None:
-		next = vFULL
-
-	if True or next != cur:
-		cur = next
-		cur_cam = (cur_cam + 1) % 2
-		ui_cam.set_text("%d-%s" % (cur_cam, cur))
-		camera_move(cur_cam + 1, cur.preset)
-
-	# camera lingers 10-30 sec
-	# 60 sec => 20 sec
-	top = min(float(len(active_chans))/6,1)
-	top = int(60-(40*top))
-	step = random.randint(10,top)
-	step = 10
-
-	time.sleep(step)
+	return linger
 
 
 class CamThread(threading.Thread):
@@ -558,11 +688,18 @@ class CamThread(threading.Thread):
 		self.daemon = True
 		
 	def run(self):
-		try:
-			while True:
-				camera_loop()
-		except:
-			print >> sys.stderr, sys.exc_info()
+		global force_next
+		while True:
+			try:
+				linger = camera_next()
+				
+				log("CamThread lingering for %d seconds" % (linger))
+				if force_next.wait(linger):
+					log("CamThread linger was preempted!")
+				force_next.clear()
+				
+			except:
+				log("CamThread error: %s" % str(sys.exc_info()))
 
 
 
@@ -573,13 +710,13 @@ cam = CamThread()
 cam.start()
 
 if True:
-
 	def refresh(loop=None, user_data=None):
-		loop.set_alarm_in(0.01, refresh)
+		loop.set_alarm_in(0.2, refresh)
 
-	loop = urwid.MainLoop(page, palette, unhandled_input=exit_on_q)
 	refresh(loop, None)
 	loop.run()
+
+	atem.disconnectFromSwitcher()
 
 	exit(0)
 
