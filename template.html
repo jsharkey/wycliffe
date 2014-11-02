@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Veejay status</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta http-equiv="refresh" content="3600">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<style>
+
+body {
+    background: black;
+    color: white;
+    margin: 1em;
+}
+
+* {
+    font-family: 'Open Sans', sans-serif;
+}
+
+div.control {
+    white-space: nowrap;
+    display: table-cell;
+    font-size: 2em;
+    padding: 0.5em;
+    padding-left: 1em;
+}
+
+.start { background: #01579b; }
+.stop { background: #bf360c; }
+
+div.control input {
+    font-size: 1em;
+    padding: 0.5em;
+    color: white;
+    font-weight: bold;
+    margin-left: 0.5em;
+}
+
+h1 { padding-bottom:0; margin-bottom:0; }
+a { color: gray; }
+
+</style>
+<body>
+
+<form action="/cmd">
+<h1>Veejay</h1>
+<a href="https://github.com/jsharkey/wycliffe">https://github.com/jsharkey/wycliffe</a>
+
+<div style="margin: 1em 0 1em 0;">
+<div class="control $cur">$curLabel <input type="submit" name="$next" value="$nextLabel &raquo;" class="$next" /></div>
+</div>
+
+<h2>Active video preset</h2>
+<div>Last switch to $curVideo about $curVideoAgo ago</div>
+
+<h2>Active audio channels</h2>
+<div>$curAudio</div>
+
+<h2>Dante</h2>
+<div>Last RMS signal $danteRmsAgo ago</div>
+<div>Last reboot $danteRebootAgo ago</div>
+
+<h2>Debug logs</h2>
+<pre>
+$debugLog
+</pre>
+
+</form>
+</body>
+</html>
