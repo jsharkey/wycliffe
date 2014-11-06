@@ -35,6 +35,7 @@ import telnetlib
 import paramiko
 import errno
 import math
+import subprocess
 
 # apt-get install python-numpy python-serial
 # apt-get install libqt4-dev
@@ -508,9 +509,7 @@ first_run = True
 
 
 bus = dbus.SessionBus()
-
-atem = bus.get_object('com.blackmagicdesign.QAtemConnection', '/QAtemConnection')
-atem = dbus.Interface(atem, dbus_interface='com.blackmagicdesign.QAtemConnection')
+atem = None
 
 ENABLE_SERIAL = False
 ENABLE_TELNET = True
@@ -546,11 +545,27 @@ def camera_move(cam, preset):
 		tel.read_until(">")
 		tel.close()
 
-	if first_run:
+	if atem is None:
+		# kick atem daemon and connect through dbus
+		log("Forking ATEM daemon...")
+
+		subprocess.call(["killall", "libqatemcontrol"])
+		subprocess.Popen(["../libqatemcontrol/libqatemcontrol"])
+		time.sleep(1)
+
+		atem = bus.get_object('com.blackmagicdesign.QAtemConnection', '/QAtemConnection')
+		atem = dbus.Interface(atem, dbus_interface='com.blackmagicdesign.QAtemConnection')
+		time.sleep(1)
+
 		atem.disconnectFromSwitcher()
 		atem.connectToSwitcher("10.35.36.5")
 		time.sleep(1)
-		first_run = False
+
+	atem_alive = atem.debugEnabled()
+	if not atem_alive:
+		log("ATEM looks dead; kicking!")
+		atem = None
+		return
 
 	# sigh, cameras are currently swapped in atem
 	if cam == 1: cam = 2
