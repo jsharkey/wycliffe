@@ -36,6 +36,10 @@ import paramiko
 import errno
 import math
 import subprocess
+import SocketServer
+import BaseHTTPServer
+
+from string import Template
 
 # apt-get install python-numpy python-serial
 # apt-get install libqt4-dev
@@ -117,6 +121,70 @@ test_high = {
 	"IMAC": False,
 	"PULPIT": False,
 }
+
+templ_val = {
+	"curVideo": "vSTAGE",
+	"curVideoAgo": "30 sec",
+	"curAudio": None,
+	"danteRmsAgo": "30 sec",
+	"danteRebootAgo": "5 hrs",
+}
+
+with open("template.html") as f:
+    templ = Template(f.read())
+
+
+web_stop = False
+
+class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+	def log_message(self, format, *args):
+		pass
+		#log("%s - %s" % (self.address_string(),format%args))
+
+	def do_GET(self):
+		global templ, templ_val, web_stop
+		if "stop=STOP" in self.path:
+			log("ZOMG STOP!")
+			web_stop = True
+
+			self.send_response(302)
+			self.send_header("Location", "/")
+			self.end_headers()
+			return
+
+		if "start=START" in self.path:
+			log("ZOMG START!")
+			web_stop = False
+
+			self.send_response(302)
+			self.send_header("Location", "/")
+			self.end_headers()
+			return
+			
+		templ_val["cur"] = "stop" if web_stop else "start"
+		templ_val["curLabel"] = "STOPPED" if web_stop else "STARTED"
+		templ_val["next"] = "start" if web_stop else "stop"
+		templ_val["nextLabel"] = "START" if web_stop else "STOP"
+		templ_val["debugLog"] = "\n".join(log_buffer)
+
+		# always dump current status
+		self.send_response(200)
+		self.send_header("Content-type", "text/html")
+		self.end_headers()
+
+		self.wfile.write(templ.substitute(templ_val))
+
+
+class WebThread(threading.Thread):
+	def __init__(self):
+		threading.Thread.__init__(self)
+		self.daemon = True
+		
+	def run(self):
+		SocketServer.TCPServer.allow_reuse_address = True
+		server = SocketServer.TCPServer(("",8080), MyHandler)
+		server.serve_forever()
+
 
 def handle_input(key):
 	global test_high
@@ -586,10 +654,11 @@ stale = 0
 scores = {}
 
 def camera_score():
-	global scores, stale
+	global scores, stale, templ_val
 
 	# okay, time to transition! what's active?
 	msg = "active chans %s\n" % (active_chans)
+	templ_val['curAudio'] = str(active_chans)
 
 	# map active channels onto audio
 	for a in AUDIO:
@@ -703,8 +772,13 @@ class CamThread(threading.Thread):
 		self.daemon = True
 		
 	def run(self):
-		global force_next
+		global force_next, web_stop
 		while True:
+			if web_stop:
+				log("Stop requested via web; CamThread not touching camera!")
+				time.sleep(15)
+				continue
+
 			try:
 				linger = camera_next()
 				
@@ -723,6 +797,9 @@ rms.start()
 
 cam = CamThread()
 cam.start()
+
+web = WebThread()
+web.start()
 
 if True:
 	def refresh(loop=None, user_data=None):
