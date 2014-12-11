@@ -117,6 +117,8 @@ for c, v in CONFIG.iteritems():
 	while None in v:
 		v.remove(None)
 
+force_next = threading.Event()
+
 test_high = {
 	"IMAC": False,
 	"PULPIT": False,
@@ -135,6 +137,7 @@ with open("template.html") as f:
 
 
 web_stop = False
+web_logo = False
 
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	def log_message(self, format, *args):
@@ -142,10 +145,11 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		#log("%s - %s" % (self.address_string(),format%args))
 
 	def do_GET(self):
-		global templ, templ_val, web_stop
+		global templ, templ_val, web_stop, web_logo
 		if "stop=STOP" in self.path:
 			log("ZOMG STOP!")
 			web_stop = True
+			force_next.set()
 
 			self.send_response(302)
 			self.send_header("Location", "/")
@@ -155,6 +159,17 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		if "start=START" in self.path:
 			log("ZOMG START!")
 			web_stop = False
+			force_next.set()
+
+			self.send_response(302)
+			self.send_header("Location", "/")
+			self.end_headers()
+			return
+
+		if "logo=LOGO" in self.path:
+			log("ZOMG LOGO!")
+			web_logo = True
+			force_next.set()
 
 			self.send_response(302)
 			self.send_header("Location", "/")
@@ -251,7 +266,6 @@ for i in range(0,LOG_SIZE):
 	log('.')
 
 
-force_next = threading.Event()
 
 DANTE = "10.35.0.2"
 CTL_PORT = 8800
@@ -642,7 +656,8 @@ def camera_move(cam, preset):
 	atem.changePreviewInput(cam)
 
 	# wait for camera to settle, then ask atem to switch
-	time.sleep(6)
+	if preset != vLOGO:
+		time.sleep(6)
 	
 	# pull trigger
 	atem.doAuto()
@@ -699,14 +714,19 @@ cur_cam = -1
 cur_preset = None
 
 def camera_next(loop=None, user_data=None):
-	global first_run, cur_cam, cur_preset, scores
+	global first_run, cur_cam, cur_preset, scores, web_logo
 
 	# by default, go to logo
 	next_cam = 3010
 	next_preset = vLOGO
 	linger = 15
 
-	if "IMAC" in active_chans:
+	if web_logo:
+		# web request to snap to logo
+		web_logo = False
+		pass
+
+	elif "IMAC" in active_chans:
 		# stream is active; stay on default logo above
 		pass
 
@@ -772,11 +792,14 @@ class CamThread(threading.Thread):
 		self.daemon = True
 		
 	def run(self):
-		global force_next, web_stop
+		global force_next, web_stop, web_logo
 		while True:
 			if web_stop:
 				log("Stop requested via web; CamThread not touching camera!")
-				time.sleep(15)
+				force_next.wait(15)
+				if web_logo:
+					camera_next()
+				force_next.clear()
 				continue
 
 			try:
