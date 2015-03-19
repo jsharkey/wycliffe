@@ -404,7 +404,7 @@ ACTIVE_THRESH = {
 	#'TOM1': 0.2, 'TOM2': 0.2,
 	'SNARETOP': 0.4, 'SNAREBOT': 0.4,
 
-	'AGT1': 0.32, 'AGT2': 0.32,
+	'AGT1': 0.32, 'AGT2': 0.9, #0.32,
 	'EGT1': 0.28, 'EGT2': 0.28,
 	'BASS': 0.24,
 	'KEYL': 0.24, 'KEYR': 0.24,
@@ -434,6 +434,7 @@ FILTER_CHANS = ["FOHL",
 	#"MIDIL","MIDIR","KEYL","KEYR","MIDI2L","MIDI2R",
 ]
 PREEMPT = ["PLVOC","PULPIT","IMAC"]
+DEAD_PROBES = ["OHL","WLVOX1","FOHL"]
 NORM_CHANS = FILTER_CHANS[1:]
 FILTER_HISTORY = 100
 
@@ -496,7 +497,12 @@ class RmsThread(threading.Thread):
 					rms = struct.unpack("!128B", p.data[14+3:])
 					rms = [254-val for val in rms]
 					
-					if sum(rms) == 0:
+					found_dead = False
+					for probe in DEAD_PROBES:
+						if rms[channels_rev[probe]] == 0:
+							found_dead = True
+
+					if found_dead:
 						dead_count += 1
 					else:
 						dead_count = 0
