@@ -1,0 +1,41 @@
+#!/bin/bash
+# /etc/init.d/screensh
+
+### BEGIN INIT INFO
+# Provides:   screen.sh
+# Required-Start: $local_fs $remote_fs
+# Required-Stop:  $local_fs $remote_fs
+# Should-Start:   $network
+# Should-Stop:    $network
+# Default-Start:  2 3 4 5
+# Default-Stop:   0 1 6
+# Short-Description:    Screen.sh 
+# Description:    This runs a script continuously in screen. 
+### END INIT INFO
+
+case "$1" in
+
+  start)
+        echo "Starting screen.sh"
+        screen -dm bash /root/wycliffe/spawn.sh
+        ;;
+  stop)
+        echo "Stopping screen.sh"
+        PID=`ps -ef | grep spawn.sh | grep -v grep | awk '{print $2}'`
+        kill -9 $PID 
+        ;;
+
+  restart|force-reload)
+        echo "Restarting $screen"
+        PID=`ps -ef | grep spawn.sh | grep -v grep | awk '{print $2}'`
+        kill -9 $PID 
+        sleep 15
+        screen -dm sh /root/wycliffe/spawn.sh
+        ;;
+  *)
+        N=/etc/init.d/$NAME
+        echo "Usage: $N {start|stop|restart}" >&2
+        exit 1
+        ;;
+esac
+exit 0
