@@ -38,6 +38,7 @@ import math
 import subprocess
 import SocketServer
 import BaseHTTPServer
+import datetime
 
 from string import Template
 
@@ -138,6 +139,7 @@ with open("template.html") as f:
 
 web_stop = False
 web_logo = False
+practice = False
 
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	def log_message(self, format, *args):
@@ -798,8 +800,16 @@ class CamThread(threading.Thread):
 		self.daemon = True
 		
 	def run(self):
-		global force_next, web_stop, web_logo
+		global force_next, web_stop, web_logo, practice
 		while True:
+			now = datetime.datetime.now()
+			if now.weekday() == 4 and now.hour == 18 and not practice:
+				log("PRACTICE TIME, YALL!")
+				web_stop = web_logo = practice = True
+			if now.weekday() == 4 and now.hour == 19 and practice:
+				log("PRACTICE OVER, YALL!")
+				web_stop = web_logo = practice = False
+
 			if web_stop:
 				log("Stop requested via web; CamThread not touching camera!")
 				force_next.wait(15)
